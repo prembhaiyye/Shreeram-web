@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shreeram Group of Business</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f1f8e9, #fff3e0);
+      color: #333;
+    }
+
+    header {
+      text-align: center;
+      padding: 50px 20px;
+      background: linear-gradient(to right, #3f51b5, #7b1fa2); /* Changed */
+      color: white;
+      animation: fadeInDown 1s ease-in-out;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.8em;
+      background: linear-gradient(to right, #ffffff, #c5cae9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+      font-size: 1.2em;
+      margin-top: 10px;
+      color: #e0e0f1;
+    }
+
+    .business-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      padding: 40px;
+      animation: fadeInUp 1s ease-in-out;
+    }
+
+    .business-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+
+    .business-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .business-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .business-card h2 {
+      margin: 0;
+      padding: 15px;
+      font-size: 1.2em;
+      color: white;
+      background: linear-gradient(to right, #ff7043, #f06292); /* Updated */
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 2em;
+      }
+      .business-card h2 {
+        font-size: 1em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Shreeram Group of Business</h1>
+    <p>Explore our services across multiple domains</p>
+  </header>
+
+  <div class="business-container">
+    <div class="business-card" onclick="location.href='computers.html'">
+      <img src="cimg.jpeg" alt="Shreeram Computers and Zerox">
+      <h2>Shreeram Computers and Zerox</h2>
+    </div>
+    <div class="business-card" onclick="location.href='travels.html'">
+      <img src="travels.jpg" alt="Shreeram Travels">
+      <h2>Shreeram Travels</h2>
+    </div>
+    <div class="business-card" onclick="location.href='electronics.html'">
+      <img src="ele.png" alt="Shreeram Electronics">
+      <h2>Shreeram Electronics</h2>
+    </div>
+    <div class="business-card" onclick="location.href='clothes.html'">
+      <img src="https://via.placeholder.com/300x180?text=Clothes+Printing" alt="Shreeram Clothes Printing">
+      <h2>Shreeram Clothes Printing</h2>
+    </div>
+  </div>
+</body>
+</html>

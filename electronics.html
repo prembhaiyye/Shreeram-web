@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Electronics Store</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    min-height: 100vh;
+    background: #f0f2f5;
+  }
+	header {
+      text-align: center;
+      padding: 30px 20px 20px;
+      background: linear-gradient(to right, #8e24aa, #3949ab);
+      color: white;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+    }
+
+    header p {
+      margin: 5px 0 15px;
+      font-size: 1.2rem;
+    }
+  .products {
+    flex: 1;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+    gap: 20px;
+    overflow-y: auto;
+  }
+  .product {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgb(0 0 0 / 0.1);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .product img {
+    max-width: 100%;
+    height: 120px;
+    object-fit: contain;
+    margin-bottom: 10px;
+  }
+  .product h3 {
+    margin: 10px 0 5px;
+    font-size: 18px;
+    color: #333;
+  }
+  .value-select {
+    margin-bottom: 10px;
+    padding: 5px;
+    font-size: 14px;
+  }
+  .qty-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .qty-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    font-size: 18px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .qty-btn:active {
+    background: #0056b3;
+  }
+  .qty {
+    margin: 0 12px;
+    font-size: 16px;
+    min-width: 20px;
+    text-align: center;
+  }
+  .add-to-cart-btn {
+    background: #28a745;
+    border: none;
+    color: white;
+    font-weight: bold;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .add-to-cart-btn:hover {
+    background: #1e7e34;
+  }
+
+  /* Cart styles */
+  .cart {
+    width: 350px;
+    background: #fff;
+    border-left: 2px solid #ddd;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .cart h2 {
+    margin-top: 0;
+    color: #444;
+  }
+  #cart-list {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 15px;
+  }
+  #cart-list li {
+    list-style: none;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+    color: #222;
+  }
+  #cart-list li button {
+    margin-left: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 3px 7px;
+    border-radius: 3px;
+    border: none;
+    color: white;
+  }
+  .remove-btn {
+    background: #dc3545;
+  }
+  .increaseBtn, .decreaseBtn {
+    background: #007bff;
+  }
+  .increaseBtn:active, .decreaseBtn:active {
+    background: #0056b3;
+  }
+
+  #total {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #333;
+  }
+  #order-btn {
+    background: #25d366;
+    color: white;
+    font-size: 18px;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  #order-btn:hover {
+    background: #128c4a;
+  }
+
+  /* Responsive */
+  @media(max-width: 900px) {
+    body {
+      flex-direction: column;
+    }
+    .cart {
+      width: 100%;
+      height: auto;
+      position: relative;
+      border-left: none;
+      border-top: 2px solid #ddd;
+    }
+    .products {
+      grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="products" id="products-container">
+  <!-- Products will be injected here -->
+</div>
+
+<div class="cart">
+  <h2>Your Cart</h2>
+  <ul id="cart-list"></ul>
+  <div id="total">Total: ₹0.00</div>
+  <button id="order-btn">Order on WhatsApp</button>
+</div>
+
+<script>
+  const products = [
+    {
+      id: 1,
+      name: "Resistor",
+      price: 10,
+      img: "https://i.imgur.com/fD8Vp7m.png",
+      options: [
+        { label: "Value", values: ["100 Ω", "220 Ω", "470 Ω", "1k Ω", "10k Ω"] }
+      ],
+      qty: 1
+    },
+    {
+      id: 2,
+      name: "Capacitor",
+      price: 20,
+      img: "https://i.imgur.com/OzCynhu.png",
+      options: [
+        { label: "Value", values: ["1 μF", "10 μF", "100 μF", "470 μF"] }
+      ],
+      qty: 1
+    },
+    {
+      id: 3,
+      name: "Inductor",
+      price: 30,
+      img: "https://i.imgur.com/RQEGD1q.png",
+      options: [
+        { label: "Value", values: ["10 mH", "100 mH", "1 H"] }
+      ],
+      qty: 1
+    },
+    {
+      id: 4,
+      name: "LED",
+      price: 15,
+      img: "https://i.imgur.com/vG3uCNW.png",
+      options: [
+        { label: "Color", values: ["Red", "Green", "Blue", "Yellow", "White"] }
+      ],
+      qty: 1
+    },
+    {
+      id: 5,
+      name: "Transistor",
+      price: 50,
+      img: "https://i.imgur.com/5Oe7F3k.png",
+      qty: 1
+    },
+    {
+      id: 6,
+      name: "Diode",
+      price: 12,
+      img: "https://i.imgur.com/kDvucFG.png",
+      options: [
+        { label: "Type", values: ["1N4148", "1N4007", "Zener 5.1V"] }
+      ],
+      qty: 1
+    },
+    {
+      id: 7,
+      name: "Switch",
+      price: 25,
+      img: "https://i.imgur.com/s2rRhp9.png",
+      options: [
+        { label: "Type", values: ["Toggle", "Push Button", "Slide"] }
+      ],
+      qty: 1
+    },
+    {
+      id: 8,
+      name: "Microcontroller",
+      price: 200,
+      img: "https://i.imgur.com/1YvL9NZ.png",
+      options: [
+        { label: "Model", values: ["Arduino Uno", "ESP8266", "ESP32", "Raspberry Pi Pico"] }
+      ],
+      qty: 1
+    }
+  ];
+
+  let cart = [];
+
+  const container = document.getElementById("products-container");
+  const cartList = document.getElementById("cart-list");
+  const totalDiv = document.getElementById("total");
+  const orderBtn = document.getElementById("order-btn");
+
+  function renderProducts() {
+    container.innerHTML = "";
+    products.forEach((product, index) => {
+      let optionHTML = "";
+      if (product.options) {
+        product.options.forEach((opt, optIdx) => {
+          optionHTML += `<select class="value-select" data-product-index="${index}" data-option-index="${optIdx}" aria-label="${opt.label}">`;
+          optionHTML += `<option disabled selected>Select ${opt.label}</option>`;
+          opt.values.forEach((val) => {
+            optionHTML += `<option value="${val}">${val}</option>`;
+          });
+          optionHTML += `</select>`;
+        });
+      }
+      container.innerHTML += `
+      <div class="product" role="region" aria-label="${product.name}">
+        <img src="${product.img}" alt="${product.name}" />
+        <h3>${product.name}</h3>
+        ${optionHTML}
+        <div class="qty-controls" aria-label="Quantity controls for ${product.name}">
+          <button class="qty-btn decreaseBtn" aria-label="Decrease quantity">-</button>
+          <div class="qty" aria-live="polite" aria-atomic="true" role="status">${product.qty}</div>
+          <button class="qty-btn increaseBtn" aria-label="Increase quantity">+</button>
+        </div>
+        <button class="add-to-cart-btn">Add to Cart</button>
+      </div>
+      `;
+    });
+
+    // Attach event listeners for qty buttons and options
+    document.querySelectorAll(".qty-btn").forEach((btn) => {
+      btn.addEventListener("click", qtyBtnHandler);
+    });
+
+    document.querySelectorAll(".value-select").forEach((sel) => {
+      sel.addEventListener("change", optionChanged);
+    });
+
+    document.querySelectorAll(".add-to-cart-btn").forEach((btn, idx) => {
+      btn.addEventListener("click", () => addToCart(idx));
+    });
+  }
+
+  function qtyBtnHandler(e) {
+    const productDiv = e.target.closest(".product");
+    const index = [...container.children].indexOf(productDiv);
+    if (e.target.classList.contains("increaseBtn")) {
+      products[index].qty++;
+    } else if (e.target.classList.contains("decreaseBtn")) {
+      if (products[index].qty > 1) {
+        products[index].qty--;
+      }
+    }
+    renderProducts();
+  }
+
+  // Save options selected by user in products array
+  function optionChanged(e) {
+    const productIndex = e.target.dataset.productIndex;
+    const optionIndex = e.target.dataset.optionIndex;
+    products[productIndex].options[optionIndex].selected = e.target.value;
+  }
+
+  // Add to cart
+  function addToCart(productIndex) {
+    const product = products[productIndex];
+    // Check if all options are selected if product has options
+    if (product.options) {
+      for (let opt of product.options) {
+        if (!opt.selected) {
+          alert(`Please select ${opt.label} for ${product.name}`);
+          return;
+        }
+      }
+    }
+    // Create cart item key to differentiate options
+    const key = product.id + (product.options ? product.options.map(o => o.selected).join("|") : "");
+    let cartItem = cart.find(item => item.key === key);
+    if (cartItem) {
+      cartItem.qty += product.qty;
+    } else {
+      cart.push({
+        key,
+        id: product.id,
+        name: product.name,
+        options: product.options ? product.options.map(o => ({ label: o.label, value: o.selected })) : [],
+        price: product.price,
+        qty: product.qty
+      });
+    }
+    // Reset qty for product to 1 after adding
+    products[productIndex].qty = 1;
+    if (product.options) {
+      product.options.forEach(opt => opt.selected = null);
+    }
+    renderProducts();
+    renderCart();
+  }
+
+  // Render cart
+  function renderCart() {
+    cartList.innerHTML = "";
+    if (cart.length === 0) {
+      cartList.innerHTML = "<li>Your cart is empty.</li>";
+      totalDiv.textContent = "Total: ₹0.00";
+      return;
+    }
+    let total = 0;
+    cart.forEach((item, idx) => {
+      total += item.price * item.qty;
+      const optionsText = item.options.length > 0 
+        ? ` (${item.options.map(o => o.value).join(", ")})`
+        : "";
+      cartList.innerHTML += `
+      <li>
+        ${item.name}${optionsText} — ₹${item.price} × ${item.qty} = ₹${(item.price * item.qty).toFixed(2)}
+        <br/>
+        <button class="increaseBtn" aria-label="Increase quantity of ${item.name}" data-index="${idx}">+</button>
+        <button class="decreaseBtn" aria-label="Decrease quantity of ${item.name}" data-index="${idx}">-</button>
+        <button class="remove-btn" aria-label="Remove ${item.name} from cart" data-index="${idx}">Remove</button>
+      </li>
+      `;
+    });
+    totalDiv.textContent = `Total: ₹${total.toFixed(2)}`;
+
+    document.querySelectorAll("#cart-list .increaseBtn").forEach(btn => {
+      btn.onclick = () => {
+        const idx = btn.dataset.index;
+        cart[idx].qty++;
+        renderCart();
+      };
+    });
+    document.querySelectorAll("#cart-list .decreaseBtn").forEach(btn => {
+      btn.onclick = () => {
+        const idx = btn.dataset.index;
+        if (cart[idx].qty > 1) {
+          cart[idx].qty--;
+        } else {
+          cart.splice(idx, 1);
+        }
+        renderCart();
+      };
+    });
+    document.querySelectorAll("#cart-list .remove-btn").forEach(btn => {
+      btn.onclick = () => {
+        const idx = btn.dataset.index;
+        cart.splice(idx, 1);
+        renderCart();
+      };
+    });
+  }
+
+  orderBtn.addEventListener("click", () => {
+    if (cart.length === 0) {
+      alert("Your cart is empty!");
+      return;
+    }
+    let message = "Order for Electronics Components:%0A";
+    cart.forEach(item => {
+      const optionsText = item.options.length > 0
+        ? ` (${item.options.map(o => o.value).join(", ")})`
+        : "";
+      message += `${item.name}${optionsText} - Qty: ${item.qty} - ₹${(item.price * item.qty).toFixed(2)}%0A`;
+    });
+    const total = cart.reduce((acc, i) => acc + i.price * i.qty, 0);
+    message += `Total: ₹${total.toFixed(2)}`;
+    // WhatsApp number - replace with your number without + or leading 0
+    const phone = "919766229269";
+    const url = `https://wa.me/${phone}?text=${message}`;
+    window.open(url, "_blank");
+  });
+
+  renderProducts();
+  renderCart();
+</script>
+</body>
+</html>
