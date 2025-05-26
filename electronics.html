@@ -12,22 +12,6 @@
     min-height: 100vh;
     background: #f0f2f5;
   }
-	header {
-      text-align: center;
-      padding: 30px 20px 20px;
-      background: linear-gradient(to right, #8e24aa, #3949ab);
-      color: white;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 2.5rem;
-    }
-
-    header p {
-      margin: 5px 0 15px;
-      font-size: 1.2rem;
-    }
   .products {
     flex: 1;
     padding: 20px;
@@ -123,6 +107,7 @@
     flex: 1;
     overflow-y: auto;
     margin-bottom: 15px;
+    padding-left: 0;
   }
   #cart-list li {
     list-style: none;
@@ -195,22 +180,22 @@
   <!-- Products will be injected here -->
 </div>
 
-<div class="cart">
-  <h2>Your Cart</h2>
-  <ul id="cart-list"></ul>
-  <div id="total">Total: ₹0.00</div>
-  <button id="order-btn">Order on WhatsApp</button>
+<div class="cart" aria-label="Shopping cart">
+  <h2>Your Cart 🛒</h2>
+  <ul id="cart-list" aria-live="polite" aria-relevant="additions removals"></ul>
+  <div id="total" aria-live="polite">Total: ₹0.00</div>
+  <button id="order-btn" aria-label="Order on WhatsApp">Order on WhatsApp</button>
 </div>
 
 <script>
   const products = [
     {
       id: 1,
-      name: "Resistor",
+      name: "Resistor <br>4",
       price: 10,
-      img: "https://i.imgur.com/fD8Vp7m.png",
+      img: "resistor.jpg",
       options: [
-        { label: "Value", values: ["100 Ω", "220 Ω", "470 Ω", "1k Ω", "10k Ω"] }
+        { label: "Value", values: ["10 Ω", "22 Ω", "47 Ω", "100 Ω", "150 Ω", "200 Ω", "220 Ω", "270 Ω", "330 Ω", "470 Ω", "530 Ω", "680 Ω","1 kΩ", "2 kΩ", "2.2 kΩ", "3.3 kΩ", "4.7 kΩ", "5.1 kΩ", "6.6 kΩ", "10 kΩ", "20 kΩ", "47 kΩ", "51 kΩ", "68 kΩ", "100 kΩ", "220 kΩ", "300 kΩ", "470 kΩ", "680 kΩ","1 MΩ"] }
       ],
       qty: 1
     },
@@ -218,7 +203,7 @@
       id: 2,
       name: "Capacitor",
       price: 20,
-      img: "https://i.imgur.com/OzCynhu.png",
+      img: "capacitor.jpg",
       options: [
         { label: "Value", values: ["1 μF", "10 μF", "100 μF", "470 μF"] }
       ],
@@ -228,7 +213,7 @@
       id: 3,
       name: "Inductor",
       price: 30,
-      img: "https://i.imgur.com/RQEGD1q.png",
+      img: "inductor.jpg",
       options: [
         { label: "Value", values: ["10 mH", "100 mH", "1 H"] }
       ],
@@ -238,7 +223,7 @@
       id: 4,
       name: "LED",
       price: 15,
-      img: "https://i.imgur.com/vG3uCNW.png",
+      img: "led.jpg",
       options: [
         { label: "Color", values: ["Red", "Green", "Blue", "Yellow", "White"] }
       ],
@@ -248,14 +233,14 @@
       id: 5,
       name: "Transistor",
       price: 50,
-      img: "https://i.imgur.com/5Oe7F3k.png",
+      img: "transistor.jpg",
       qty: 1
     },
     {
       id: 6,
       name: "Diode",
       price: 12,
-      img: "https://i.imgur.com/kDvucFG.png",
+      img: "diode.jpg",
       options: [
         { label: "Type", values: ["1N4148", "1N4007", "Zener 5.1V"] }
       ],
@@ -265,7 +250,7 @@
       id: 7,
       name: "Switch",
       price: 25,
-      img: "https://i.imgur.com/s2rRhp9.png",
+      img: "switch.jpg",
       options: [
         { label: "Type", values: ["Toggle", "Push Button", "Slide"] }
       ],
@@ -274,11 +259,29 @@
     {
       id: 8,
       name: "Microcontroller",
+      h3:"200",
       price: 200,
-      img: "https://i.imgur.com/1YvL9NZ.png",
+      img: "microcontroller.jpg",
       options: [
         { label: "Model", values: ["Arduino Uno", "ESP8266", "ESP32", "Raspberry Pi Pico"] }
       ],
+      qty: 1
+    },
+{
+      id: 9,
+      name: "IC's",
+      price: 25,
+      img: "741.jpg",
+      options: [
+        { label: "Type", values: ["IC741", "IC555", ""] }
+      ],
+      qty: 1
+    },,
+{
+      id: 10,
+      name: "9V Battery",
+      price: 25,
+      img: "741.jpg",
       qty: 1
     }
   ];
@@ -297,7 +300,7 @@
       if (product.options) {
         product.options.forEach((opt, optIdx) => {
           optionHTML += `<select class="value-select" data-product-index="${index}" data-option-index="${optIdx}" aria-label="${opt.label}">`;
-          optionHTML += `<option disabled selected>Select ${opt.label}</option>`;
+          optionHTML += `<option value="" disabled selected>Select ${opt.label}</option>`;
           opt.values.forEach((val) => {
             optionHTML += `<option value="${val}">${val}</option>`;
           });
@@ -305,91 +308,90 @@
         });
       }
       container.innerHTML += `
-      <div class="product" role="region" aria-label="${product.name}">
-        <img src="${product.img}" alt="${product.name}" />
-        <h3>${product.name}</h3>
+      <div class="product" role="group" aria-labelledby="product-name-${index}">
+        <img src="${product.img}" alt="${product.name} image" />
+        <h3 id="product-name-${index}">${product.name}</h3>
         ${optionHTML}
-        <div class="qty-controls" aria-label="Quantity controls for ${product.name}">
-          <button class="qty-btn decreaseBtn" aria-label="Decrease quantity">-</button>
-          <div class="qty" aria-live="polite" aria-atomic="true" role="status">${product.qty}</div>
-          <button class="qty-btn increaseBtn" aria-label="Increase quantity">+</button>
+        <div class="qty-controls" aria-label="Quantity controls">
+          <button class="qty-btn decreaseBtn" data-index="${index}" aria-label="Decrease quantity">-</button>
+          <div class="qty" id="qty-${index}" aria-live="polite" aria-atomic="true">${product.qty}</div>
+          <button class="qty-btn increaseBtn" data-index="${index}" aria-label="Increase quantity">+</button>
         </div>
-        <button class="add-to-cart-btn">Add to Cart</button>
-      </div>
-      `;
+        <button class="add-to-cart-btn" data-index="${index}" aria-label="Add to cart for ${product.name}">Add to Cart</button>
+      </div>`;
     });
 
-    // Attach event listeners for qty buttons and options
-    document.querySelectorAll(".qty-btn").forEach((btn) => {
-      btn.addEventListener("click", qtyBtnHandler);
+    // Event listeners for increase/decrease qty buttons
+    document.querySelectorAll(".increaseBtn").forEach(btn => {
+      btn.onclick = () => {
+        const idx = +btn.dataset.index;
+        products[idx].qty++;
+        document.getElementById(`qty-${idx}`).textContent = products[idx].qty;
+      };
     });
 
-    document.querySelectorAll(".value-select").forEach((sel) => {
-      sel.addEventListener("change", optionChanged);
-    });
-
-    document.querySelectorAll(".add-to-cart-btn").forEach((btn, idx) => {
-      btn.addEventListener("click", () => addToCart(idx));
-    });
-  }
-
-  function qtyBtnHandler(e) {
-    const productDiv = e.target.closest(".product");
-    const index = [...container.children].indexOf(productDiv);
-    if (e.target.classList.contains("increaseBtn")) {
-      products[index].qty++;
-    } else if (e.target.classList.contains("decreaseBtn")) {
-      if (products[index].qty > 1) {
-        products[index].qty--;
-      }
-    }
-    renderProducts();
-  }
-
-  // Save options selected by user in products array
-  function optionChanged(e) {
-    const productIndex = e.target.dataset.productIndex;
-    const optionIndex = e.target.dataset.optionIndex;
-    products[productIndex].options[optionIndex].selected = e.target.value;
-  }
-
-  // Add to cart
-  function addToCart(productIndex) {
-    const product = products[productIndex];
-    // Check if all options are selected if product has options
-    if (product.options) {
-      for (let opt of product.options) {
-        if (!opt.selected) {
-          alert(`Please select ${opt.label} for ${product.name}`);
-          return;
+    document.querySelectorAll(".decreaseBtn").forEach(btn => {
+      btn.onclick = () => {
+        const idx = +btn.dataset.index;
+        if (products[idx].qty > 1) {
+          products[idx].qty--;
+          document.getElementById(`qty-${idx}`).textContent = products[idx].qty;
         }
-      }
-    }
-    // Create cart item key to differentiate options
-    const key = product.id + (product.options ? product.options.map(o => o.selected).join("|") : "");
-    let cartItem = cart.find(item => item.key === key);
-    if (cartItem) {
-      cartItem.qty += product.qty;
-    } else {
-      cart.push({
-        key,
-        id: product.id,
-        name: product.name,
-        options: product.options ? product.options.map(o => ({ label: o.label, value: o.selected })) : [],
-        price: product.price,
-        qty: product.qty
-      });
-    }
-    // Reset qty for product to 1 after adding
-    products[productIndex].qty = 1;
-    if (product.options) {
-      product.options.forEach(opt => opt.selected = null);
-    }
-    renderProducts();
-    renderCart();
+      };
+    });
+
+    // Add to Cart buttons
+    document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
+      btn.onclick = () => {
+        const idx = +btn.dataset.index;
+        const product = products[idx];
+
+        // Collect selected options for this product
+        let selectedOptions = [];
+        if (product.options) {
+          const selects = container.querySelectorAll(`select[data-product-index="${idx}"]`);
+          for (const sel of selects) {
+            if (!sel.value) {
+              alert(`Please select ${sel.getAttribute("aria-label")} for ${product.name}`);
+              return;
+            }
+            selectedOptions.push({ label: sel.getAttribute("aria-label"), value: sel.value });
+          }
+        }
+
+        // Check if product with same options already in cart
+        const foundIndex = cart.findIndex(c => {
+          if (c.id !== product.id) return false;
+          if (c.options.length !== selectedOptions.length) return false;
+          for (let i = 0; i < c.options.length; i++) {
+            if (c.options[i].value !== selectedOptions[i].value) return false;
+          }
+          return true;
+        });
+
+        if (foundIndex > -1) {
+          // Increase qty in cart
+          cart[foundIndex].qty += product.qty;
+        } else {
+          // Add new product to cart with options and qty
+          cart.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            options: selectedOptions,
+            qty: product.qty
+          });
+        }
+
+        // Reset qty on product card to 1 after adding
+        products[idx].qty = 1;
+        document.getElementById(`qty-${idx}`).textContent = "1";
+
+        renderCart();
+      };
+    });
   }
 
-  // Render cart
   function renderCart() {
     cartList.innerHTML = "";
     if (cart.length === 0) {
@@ -397,73 +399,82 @@
       totalDiv.textContent = "Total: ₹0.00";
       return;
     }
-    let total = 0;
-    cart.forEach((item, idx) => {
-      total += item.price * item.qty;
-      const optionsText = item.options.length > 0 
-        ? ` (${item.options.map(o => o.value).join(", ")})`
-        : "";
+
+    cart.forEach((item, i) => {
+      const optionsText = item.options.length > 0 ? ` (${item.options.map(o => o.value).join(", ")})` : "";
+      const lineTotal = (item.price * item.qty).toFixed(2);
+
       cartList.innerHTML += `
       <li>
-        ${item.name}${optionsText} — ₹${item.price} × ${item.qty} = ₹${(item.price * item.qty).toFixed(2)}
+        <strong>${item.name}${optionsText}</strong><br/>
+        Qty: ${item.qty} | Price: ₹${lineTotal}
         <br/>
-        <button class="increaseBtn" aria-label="Increase quantity of ${item.name}" data-index="${idx}">+</button>
-        <button class="decreaseBtn" aria-label="Decrease quantity of ${item.name}" data-index="${idx}">-</button>
-        <button class="remove-btn" aria-label="Remove ${item.name} from cart" data-index="${idx}">Remove</button>
-      </li>
-      `;
+        <button class="decreaseBtn" data-cart-index="${i}" aria-label="Decrease quantity of ${item.name}">-</button>
+        <button class="increaseBtn" data-cart-index="${i}" aria-label="Increase quantity of ${item.name}">+</button>
+        <button class="remove-btn" data-cart-index="${i}" aria-label="Remove ${item.name} from cart">Remove</button>
+      </li>`;
     });
-    totalDiv.textContent = `Total: ₹${total.toFixed(2)}`;
 
-    document.querySelectorAll("#cart-list .increaseBtn").forEach(btn => {
+    // Add event listeners for cart quantity and remove buttons
+    cartList.querySelectorAll(".increaseBtn").forEach(btn => {
       btn.onclick = () => {
-        const idx = btn.dataset.index;
+        const idx = +btn.dataset.cartIndex;
         cart[idx].qty++;
         renderCart();
       };
     });
-    document.querySelectorAll("#cart-list .decreaseBtn").forEach(btn => {
+
+    cartList.querySelectorAll(".decreaseBtn").forEach(btn => {
       btn.onclick = () => {
-        const idx = btn.dataset.index;
+        const idx = +btn.dataset.cartIndex;
         if (cart[idx].qty > 1) {
           cart[idx].qty--;
         } else {
+          // if qty=1 and decrease clicked, remove item
           cart.splice(idx, 1);
         }
         renderCart();
       };
     });
-    document.querySelectorAll("#cart-list .remove-btn").forEach(btn => {
+
+    cartList.querySelectorAll(".remove-btn").forEach(btn => {
       btn.onclick = () => {
-        const idx = btn.dataset.index;
+        const idx = +btn.dataset.cartIndex;
         cart.splice(idx, 1);
         renderCart();
       };
     });
+
+    const totalPrice = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+    totalDiv.textContent = `Total: ₹${totalPrice.toFixed(2)}`;
   }
 
-  orderBtn.addEventListener("click", () => {
+  orderBtn.onclick = () => {
     if (cart.length === 0) {
-      alert("Your cart is empty!");
+      alert("Your cart is empty! Please add items before ordering.");
       return;
     }
-    let message = "Order for Electronics Components:%0A";
-    cart.forEach(item => {
-      const optionsText = item.options.length > 0
-        ? ` (${item.options.map(o => o.value).join(", ")})`
-        : "";
-      message += `${item.name}${optionsText} - Qty: ${item.qty} - ₹${(item.price * item.qty).toFixed(2)}%0A`;
-    });
-    const total = cart.reduce((acc, i) => acc + i.price * i.qty, 0);
-    message += `Total: ₹${total.toFixed(2)}`;
-    // WhatsApp number - replace with your number without + or leading 0
-    const phone = "919766229269";
-    const url = `https://wa.me/${phone}?text=${message}`;
-    window.open(url, "_blank");
-  });
 
+    let message = "Hello! I want to place an order:\n\n";
+    cart.forEach((item, i) => {
+      const optionsText = item.options.length > 0 ? ` (${item.options.map(o => o.value).join(", ")})` : "";
+      message += `${i+1}. ${item.name}${optionsText}\n   Quantity: ${item.qty}\n   Price: ₹${(item.price * item.qty).toFixed(2)}\n\n`;
+    });
+    const totalPrice = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+    message += `Total Price: ₹${totalPrice.toFixed(2)}`;
+
+    const encodedMsg = encodeURIComponent(message);
+    // Change the phone number below to your WhatsApp number with country code, no "+" or "00"
+    const whatsappNumber = "919766229269"; 
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMsg}`;
+
+    window.open(whatsappUrl, "_blank");
+  };
+
+  // Initial render
   renderProducts();
   renderCart();
 </script>
+
 </body>
 </html>
