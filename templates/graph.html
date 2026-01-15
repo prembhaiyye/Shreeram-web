@@ -1,119 +1,319 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-    <a href="{{ url_for('views.monitor') }}" class="btn"
-        style="width: auto; padding: 0.5rem 1rem; background: transparent; color: var(--text-secondary);">← Back</a>
-    <h1 style="text-transform: capitalize;">{{ sensor_type }} History</h1>
-</div>
+<div class="animate-slide-up">
+    <!-- Back Link -->
+    <a href="{{ url_for('views.monitor') }}"
+        style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); margin-bottom: 2rem; text-decoration: none; font-weight: 600; transition: color 0.2s;">
+        <span style="font-size: 1.2rem;">‹</span> Back to Dashboard
+    </a>
 
-<!-- Controls Section -->
-<h3 style="margin-bottom: 1rem;">Controls</h3>
-<div class="card-grid" style="margin-bottom: 2rem;">
-    {% for control in controls %}
-    {% set icon_off = '🔌' %}
-    {% set icon_on = '⚡' %}
-
-    {% if 'pump' in control.name %}
-    {% set icon_off = '🚰' %}
-    {% set icon_on = '🌊' %}
-    {% elif 'fan' in control.name %}
-    {% set icon_off = '🛑' %}
-    {% set icon_on = '💨' %}
-    {% elif 'light' in control.name %}
-    {% set icon_off = '🌑' %}
-    {% set icon_on = '💡' %}
-    {% elif 'motor' in control.name %}
-    {% set icon_off = '⚙️' %}
-    {% set icon_on = '🔄' %}
-    {% endif %}
-
-    <div class="card {{ 'card-on' if control.is_on else 'card-off' }}" id="card-{{ control.name }}"
-        data-icon-on="{{ icon_on }}" data-icon-off="{{ icon_off }}"
-        style="align-items: center; justify-content: center; text-align: center; gap: 0.5rem;">
-
-        <span class="bg-icon" id="icon-{{ control.name }}">
-            {{ icon_on if control.is_on else icon_off }}
-        </span>
-
-        <span class="card-title" style="text-transform: capitalize; font-size: 0.9rem;">{{ control.name.replace('_', '
-            ') }}</span>
-
-        <div class="status-badge {{ 'status-online' if control.is_on else 'status-offline' }}"
-            id="badge-{{ control.name }}">
-            {{ 'ON' if control.is_on else 'OFF' }}
+    <!-- FLEX ROW: Summary & Related Controls -->
+    <div class="summary-control-container">
+        <!-- 1️⃣ SENSOR SUMMARY CARD -->
+        <div class="sensor-summary-card">
+            <div class="sensor-header-left">
+                <div class="sensor-icon-big">
+                    {% if 'temp' in sensor_type %}🌡️{% elif 'humid' in sensor_type %}💧{% elif 'ph' in sensor_type
+                    %}🧪{% else %}📊{% endif %}
+                </div>
+                <div>
+                    <div
+                        style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 2px;">
+                        {{ sensor_type|replace('_', ' ')|title }}
+                    </div>
+                    <div class="sensor-value-big">
+                        <span id="currentVal">--</span>
+                        <span class="sensor-unit">{% if 'temp' in sensor_type %}°C{% elif 'humid' in sensor_type
+                            %}%{% endif %}</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; font-weight: 500;">
+                        Ideal: <span style="color: var(--text-primary); font-weight: 600;">
+                            {% if 'ph' in sensor_type %}5.5 - 6.5
+                            {% elif 'temp' in sensor_type %}22 - 28
+                            {% elif 'ec' in sensor_type %}1.2 - 2.0
+                            {% else %}--{% endif %}
+                        </span>
+                        {% if 'temp' in sensor_type %}°C{% elif 'humid' in sensor_type %}%{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="sensor-status-badge">🟢 Normal</div>
         </div>
 
-        <label class="switch" style="margin-top: 0.5rem;">
-            <input type="checkbox" onchange="toggleControl('{{ control.name }}', this.checked)" {{ 'checked' if
-                control.is_on else '' }}>
-            <span class="slider round"></span>
-        </label>
-    </div>
-    {% endfor %}
-</div>
+        <!-- 2️⃣ RELATED CONTROLS GROUP -->
+        <div class="related-controls-group">
+            {% set ns = namespace(found=false) %}
+            {% for control in controls %}
+            {% set show = False %}
+            <!-- Logic to match control to sensor -->
+            {% if 'temp' in sensor_type and 'fan' in control.name %}{% set show = True %}{% endif %}
+            {% if 'humid' in sensor_type and ('fan' in control.name or 'humid' in control.name) %}{% set show = True
+            %}{% endif %}
+            {% if 'ph' in sensor_type and ('ph' in control.name or 'stir' in control.name or 'motor' in
+            control.name) %}{% set show = True %}{% endif %}
+            {% if sensor_type == 'n' and ('n_motor' in control.name or 'n_pump' in control.name or 'stir' in
+            control.name) %}{% set show = True %}{% endif %}
+            {% if sensor_type == 'p' and ('p_motor' in control.name or 'p_pump' in control.name or 'stir' in
+            control.name) %}{% set show = True %}{% endif %}
+            {% if sensor_type == 'k' and ('k_motor' in control.name or 'k_pump' in control.name or 'stir' in
+            control.name) %}{% set show = True %}{% endif %}
+            {% if 'ec' in sensor_type and ('nutrient' in control.name or 'dose' in control.name or 'pump' in
+            control.name or 'stir' in control.name) %}{% set show = True %}{% endif %}
 
-<div class="card" style="aspect-ratio: auto; height: auto;">
-    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-bottom: 1rem;">
-        <button class="btn" style="width: auto; font-size: 0.8rem; padding: 0.25rem 0.5rem;">1H</button>
-        <button class="btn btn-primary" style="width: auto; font-size: 0.8rem; padding: 0.25rem 0.5rem;">24H</button>
-        <button class="btn" style="width: auto; font-size: 0.8rem; padding: 0.25rem 0.5rem;">1W</button>
-        <button class="btn" style="width: auto; font-size: 0.8rem; padding: 0.25rem 0.5rem;">1M</button>
-    </div>
-    <canvas id="sensorChart" width="400" height="200"></canvas>
-</div>
+            {% if show %}
+            {% set ns.found = true %}
+            <div class="control-mini-card {{ 'active' if control.is_on else 'inactive' }}"
+                id="mini-card-{{ control.name }}">
+                <div class="control-icon">
+                    {% if 'fan' in control.name %}💨{% elif 'pump' in control.name %}🌊{% elif 'light' in
+                    control.name %}💡{% else %}⚙️{% endif %}
+                </div>
+                <div class="control-name">{{ control.name|replace('_', ' ')|title }}</div>
+                <label class="switch control-toggle">
+                    <input type="checkbox" onchange="toggleControl('{{ control.name }}', this.checked)" {{ 'checked' if
+                        control.is_on else '' }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            {% endif %}
+            {% endfor %}
 
-<div class="card-grid" style="margin-top: 1.5rem; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
-    <div class="card card-sm" style="text-align: center;">
-        <div class="card-title card-title-sm">Highest</div>
-        <div class="card-value card-value-sm">28.5</div>
+            {% if not ns.found %}
+            <!-- Fallback if no specific controls found -->
+            <div style="color: var(--text-secondary); font-size: 0.8rem; font-style: italic;">
+                No direct controls linked.
+            </div>
+            {% endif %}
+        </div>
     </div>
-    <div class="card card-sm" style="text-align: center;">
-        <div class="card-title card-title-sm">Lowest</div>
-        <div class="card-value card-value-sm">22.1</div>
+
+    <!-- 3️⃣ ADVANCED GRAPH CONTAINER -->
+    <div class="graph-container-card" style="margin: 0 auto 2rem auto;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-primary);">Trend</h3>
+
+            <!-- 4️⃣ TIME RANGE SELECTOR (SEGMENTED PILL) -->
+            <div class="time-range-selector">
+                <button class="time-pill active" onclick="updateTimeRange('1H')">1H</button>
+                <button class="time-pill" onclick="updateTimeRange('24H')">24H</button>
+                <button class="time-pill" onclick="updateTimeRange('1W')">1W</button>
+                <button class="time-pill" onclick="updateTimeRange('1M')">1M</button>
+            </div>
+        </div>
+
+        <!-- 🔹 MULTI-LAYER GRAPH -->
+        <div class="graph-canvas-wrapper">
+            <canvas id="sensorChart"></canvas>
+        </div>
     </div>
-    <div class="card card-sm" style="text-align: center;">
-        <div class="card-title card-title-sm">Average</div>
-        <div class="card-value card-value-sm">25.3</div>
+
+    <!-- 5️⃣ STATISTICS PANEL -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⬆</div>
+            <div class="stat-label">Highest</div>
+            <div class="stat-value" id="statMax">--</div>
+        </div>
+        <div class="stat-card">
+            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⬇</div>
+            <div class="stat-label">Lowest</div>
+            <div class="stat-value" id="statMin">--</div>
+        </div>
+        <div class="stat-card">
+            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📊</div>
+            <div class="stat-label">Average</div>
+            <div class="stat-value" id="statAvg">--</div>
+        </div>
+    </div>
+
+    <!-- 6️⃣ SMART INSIGHTS SECTION -->
+    <div class="insight-box">
+        <div class="insight-icon">💡</div>
+        <div>
+            <strong style="display: block; margin-bottom: 0.25rem;">Smart Analysis</strong>
+            {{ sensor_type|title }} stayed within the <strong>ideal range</strong> for <strong>82%</strong> of the
+            selected period.
+            <span style="opacity: 0.8;">Consider checking insulation if fluctuations persist at night.</span>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    async function toggleControl(name, state) {
-        // Optimistic UI update
-        const badge = document.getElementById(`badge-${name}`);
-        const card = document.getElementById(`card-${name}`);
-        const iconSpan = document.getElementById(`icon-${name}`);
+    const ctx = document.getElementById('sensorChart').getContext('2d');
 
-        if (state) {
-            badge.textContent = 'ON';
-            badge.classList.remove('status-offline');
-            badge.classList.add('status-online');
+    // Gradient Fill Setup
+    let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(49, 130, 206, 0.4)'); /* Primary color low opacity */
+    gradient.addColorStop(1, 'rgba(49, 130, 206, 0.0)');
 
-            if (card) {
-                card.classList.remove('card-off');
-                card.classList.add('card-on'); // Green state
+    // --- DYNAMIC DATA GENERATION ---
+    const getRangeConfig = (range) => {
+        switch (range) {
+            case '1H':
+                return {
+                    labels: ['12:00', '12:10', '12:20', '12:30', '12:40', '12:50', '13:00'],
+                    points: 7,
+                    base: 24,
+                    variance: 1.5
+                };
+            case '24H':
+                return {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '00:00'],
+                    points: 7,
+                    base: 25,
+                    variance: 3
+                };
+            case '1W':
+                return {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    points: 7,
+                    base: 23,
+                    variance: 4
+                };
+            case '1M':
+                return {
+                    labels: ['W1', 'W2', 'W3', 'W4'],
+                    points: 4,
+                    base: 24,
+                    variance: 2
+                };
+            default: return getRangeConfig('1H');
+        }
+    };
 
-                // Switch Icon
-                const onIcon = card.getAttribute('data-icon-on');
-                if (onIcon && iconSpan) iconSpan.textContent = onIcon;
-            }
-        } else {
-            badge.textContent = 'OFF';
-            badge.classList.remove('status-online');
-            badge.classList.add('status-offline');
+    function generateSmoothData(config) {
+        let current = config.base;
+        return Array.from({ length: config.points }, () => {
+            current += (Math.random() - 0.5) * config.variance;
+            return parseFloat(current.toFixed(1));
+        });
+    }
 
-            if (card) {
-                card.classList.remove('card-on');
-                card.classList.add('card-off'); // Grey state
-
-                // Switch Icon
-                const offIcon = card.getAttribute('data-icon-off');
-                if (offIcon && iconSpan) iconSpan.textContent = offIcon;
+    // Chart Config
+    let currentData = [24.5, 25.2, 26.1, 26.8, 25.9, 24.8, 25.0];
+    const chartConfig = {
+        type: 'line',
+        data: {
+            labels: ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00'],
+            datasets: [
+                {
+                    label: '{{ sensor_type|title }}',
+                    data: currentData,
+                    borderColor: '#3182ce',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    order: 1
+                },
+                {
+                    label: 'Ideal Max',
+                    data: Array(7).fill(28),
+                    borderColor: 'transparent',
+                    pointRadius: 0,
+                    fill: false,
+                    order: 2
+                },
+                {
+                    label: 'Ideal Min',
+                    data: Array(7).fill(22),
+                    borderColor: 'transparent',
+                    pointRadius: 0,
+                    fill: '-1',
+                    backgroundColor: 'rgba(72, 187, 120, 0.15)',
+                    order: 3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(26, 32, 44, 0.9)',
+                    titleFont: { size: 12, family: 'DM Sans', weight: 'bold' },
+                    bodyFont: { size: 14, family: 'DM Sans' },
+                    padding: 10,
+                    cornerRadius: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: (ctx) => 'Value: ' + ctx.parsed.y + ' {{ "°C" if "temp" in sensor_type else "%" }}'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    grid: { color: 'rgba(0,0,0,0.04)', borderDash: [5, 5] },
+                    suggestedMin: 15,
+                    suggestedMax: 35,
+                    border: { display: false }
+                },
+                x: {
+                    grid: { display: false },
+                    border: { display: false }
+                }
+            },
+            elements: {
+                point: {
+                    hoverRadius: 8,
+                    hoverBorderWidth: 3
+                }
             }
         }
+    };
+
+    const sensorChart = new Chart(ctx, chartConfig);
+
+    // Update Stats
+    function updateStats(data) {
+        const unit = '{{ "°" if "temp" in sensor_type else "%" }}';
+        document.getElementById('statMax').innerText = Math.max(...data) + unit;
+        document.getElementById('statMin').innerText = Math.min(...data) + unit;
+        document.getElementById('statAvg').innerText = (data.reduce((a, b) => a + b) / data.length).toFixed(1) + unit;
+        document.getElementById('currentVal').innerText = data[data.length - 1];
+    }
+    updateStats(currentData);
+
+    // Logic to switch range
+    function updateTimeRange(range) {
+        document.querySelectorAll('.time-pill').forEach(b => b.classList.remove('active'));
+        const activeBtn = Array.from(document.querySelectorAll('.time-pill')).find(b => b.innerText === range);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        const config = getRangeConfig(range);
+        const newData = generateSmoothData(config);
+
+        // Update Chart Data & Labels
+        sensorChart.data.labels = config.labels;
+        sensorChart.data.datasets[0].data = newData;
+
+        // Update Ideal Bands to match label length
+        sensorChart.data.datasets[1].data = Array(config.points).fill(28);
+        sensorChart.data.datasets[2].data = Array(config.points).fill(22);
+
+        sensorChart.update();
+        updateStats(newData);
+    }
+
+    // --- REAL-TIME CONTROL SYNC ---
+    let lastActionTime = 0;
+
+    async function toggleControl(name, state) {
+        lastActionTime = Date.now();
+        updateUIControl(name, state);
 
         try {
             const response = await fetch('/api/controls', {
@@ -123,43 +323,47 @@
             });
             const result = await response.json();
             if (!result.success) {
-                // Revert if failed
+                console.error('API Error:', result.error);
                 alert('Failed to toggle control');
-                location.reload();
             }
         } catch (e) {
-            console.error(e);
-            alert('Network error');
+            console.error('Network Error:', e);
+            alert('Connection error');
         }
     }
 
-    const ctx = document.getElementById('sensorChart').getContext('2d');
-    const chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
-            datasets: [{
-                label: '{{ sensor_type|capitalize }}',
-                data: [22, 23, 25, 28, 27, 24, 23], // Dummy data
-                borderColor: '#3182ce',
-                backgroundColor: 'rgba(49, 130, 206, 0.1)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false
-                }
-            }
+    function updateUIControl(name, state) {
+        const card = document.getElementById('mini-card-' + name);
+        if (!card) return;
+
+        const input = card.querySelector('input[type="checkbox"]');
+        if (input) input.checked = state;
+
+        if (state) {
+            card.classList.remove('inactive');
+            card.classList.add('active');
+        } else {
+            card.classList.remove('active');
+            card.classList.add('inactive');
         }
-    });
+    }
+
+    async function syncControls() {
+        if (Date.now() - lastActionTime < 3000) return;
+
+        try {
+            const response = await fetch('/api/controls');
+            const states = await response.json();
+
+            for (const [name, state] of Object.entries(states)) {
+                updateUIControl(name, state);
+            }
+        } catch (e) {
+            console.warn('Sync failed', e);
+        }
+    }
+
+    setInterval(syncControls, 3000);
+
 </script>
 {% endblock %}

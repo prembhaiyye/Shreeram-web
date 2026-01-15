@@ -1,43 +1,229 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-    <a href="{{ url_for('views.profile') }}" class="btn"
-        style="width: auto; padding: 0.5rem 1rem; background: transparent; color: var(--text-secondary);">← Back</a>
-    <h1>Tank Levels</h1>
-</div>
-
-<div class="card-grid">
-    {% for tank in tanks %}
-    <div class="card tank-card">
-        <div class="card-header">
-            <span class="card-title" style="text-transform: capitalize; font-size: 1.1rem;">{{ tank.name.replace('_', '
-                ') }}</span>
-            <span
-                class="status-badge {{ 'status-offline bg-danger text-white' if tank.level_percent < 20 else 'status-online bg-primary text-white' }}">
-                {{ "Low" if tank.level_percent < 20 else "Normal" }} </span>
-        </div>
-
-        <div class="tank-visual-container">
-            <div class="tank-body">
-                <div class="water-level {{ 'bg-danger-gradient' if tank.level_percent < 20 else 'bg-primary-gradient' }}"
-                    style="height: {{ tank.level_percent }}%;">
-                    <div class="wave"></div>
-                </div>
-                <div class="percentage-display">{{ tank.level_percent | int }}%</div>
-            </div>
-        </div>
-
-        {% if tank.level_percent < 20 %} <div class="alert-box">
-            ⚠️ Refill Required
+<!-- Info Strip -->
+<div class="tank-info-strip">
+    <div style="font-weight: 600; color: var(--primary-color);">🛢️ Nutrient & Water Status</div>
+    <div style="font-size: 0.8rem;">
+        <span>⏱ Last Updated: </span><span id="last-updated">2 sec ago</span>
     </div>
-    {% endif %}
-</div>
-{% endfor %}
 </div>
 
 <div
-    style="margin-top: 2rem; padding: 1rem; background: #fffaf0; border-left: 4px solid var(--warning-color); color: #744210;">
-    <strong>Note:</strong> Tank values are approximated and may have small differences vs real volume.
+    style="font-size: 0.75rem; color: var(--text-secondary); margin-top: -1.5rem; margin-bottom: 2rem; padding-left: 1.5rem; font-style: italic;">
+    ⚠ Tank values are approximated and may have small differences.
 </div>
-{% endblock %}
+
+
+<!-- 3. MAIN WATER TANK -->
+{% set main_tank = namespace(found=false, data=None) %}
+{% for tank in tanks %}
+{% if 'main' in tank.name.lower() or 'water' in tank.name.lower() %}
+{% set main_tank.found = true %}
+{% set main_tank.data = tank %}
+{% endif %}
+{% endfor %}
+
+{% if main_tank.found %}
+<div class="tank-section-title">
+    <span style="color: var(--primary-color); font-size: 1.5rem;">🔵</span>
+    <span>MAIN WATER TANK</span>
+</div>
+
+<div class="main-tank-wrapper"
+    onclick="openTankModal('{{ main_tank.data.name }}', {{ main_tank.data.level_percent }}, 'Water')">
+    <div class="industrial-tank-horizontal">
+        <div class="tank-fill-horizontal {{ 'fill-danger' if main_tank.data.level_percent < 20 else 'fill-blue' }}"
+            style="width: {{ main_tank.data.level_percent }}%;">
+            <!-- Percentage inside liquid -->
+            <span style="margin-right: 10px;">{{ main_tank.data.level_percent | int }}%</span>
+        </div>
+        <!-- Markers -->
+        <div style="position: absolute; top: 0; left: 20%; height: 100%; border-right: 1px solid rgba(0,0,0,0.1);">
+        </div>
+        <div style="position: absolute; top: 0; left: 50%; height: 100%; border-right: 1px solid rgba(0,0,0,0.1);">
+        </div>
+        <div style="position: absolute; top: 0; left: 80%; height: 100%; border-right: 1px solid rgba(0,0,0,0.1);">
+        </div>
+    </div>
+
+    <div style="display: flex; width: 100%; max-width: 600px; justify-content: space-between; align-items: center;">
+        <div style="font-weight: 700; font-size: 1.25rem; color: var(--text-primary);">
+            {{ main_tank.data.level_percent | int }}% Full
+        </div>
+        <div style="color: {{ '#e53e3e' if main_tank.data.level_percent < 20 else '#48bb78' }}; font-weight: 600;">
+            {{ "CRITICAL LOW" if main_tank.data.level_percent < 20 else ("Low Level" if main_tank.data.level_percent <
+                40 else "Normal Level" ) }} </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- 4. NUTRIENT TANKS -->
+    <div class="tank-section-title" style="margin-top: 2rem;">
+        <span style="font-size: 1.5rem;">🧪</span>
+        <span>Nutrient Tanks</span>
+    </div>
+
+    <div class="nutrient-grid">
+        {% for tank in tanks %}
+        {% if not ('main' in tank.name.lower() or 'water' in tank.name.lower()) %}
+        {% set color_class = 'fill-blue' %}
+        {% set icon = '🧪' %}
+
+        {% if 'n' in tank.name.lower() or 'nitrogen' in tank.name.lower() %}
+        {% set color_class = 'fill-blue' %}
+        {% set icon = '🟦' %}
+        {% elif 'p' in tank.name.lower() or 'phosphorus' in tank.name.lower() %}
+        {% set color_class = 'fill-green' %}
+        {% set icon = '🟩' %}
+        {% elif 'k' in tank.name.lower() or 'potassium' in tank.name.lower() %}
+        {% set color_class = 'fill-purple' %}
+        {% set icon = '🟪' %}
+        {% elif 'ph_up' in tank.name.lower() %}
+        {% set color_class = 'fill-orange' %}
+        {% set icon = '🟨' %}
+        {% elif 'ph_down' in tank.name.lower() %}
+        {% set color_class = 'fill-red' %}
+        {% set icon = '🟥' %}
+        {% endif %}
+
+        <!-- Override for critical low -->
+        {% if tank.level_percent < 20 %} {% set safe_color_class='fill-danger' %} {% set
+            border_class='border: 1px solid var(--danger-color);' %} {% else %} {% set safe_color_class=color_class %}
+            {% set border_class='' %} {% endif %} <div class="nutrient-card" style="{{ border_class }}"
+            onclick="openTankModal('{{ tank.name }}', {{ tank.level_percent }}, 'Nutrient')">
+
+            <div
+                style="font-weight: 600; font-size: 0.95rem; text-align: center; height: 2.5rem; display: flex; align-items: center;">
+                {{ tank.name.replace('_', ' ').replace('pump', '').upper() }}
+            </div>
+
+            <div class="mini-tank-gauge">
+                <div class="mini-tank-fill {{ safe_color_class }}" style="height: {{ tank.level_percent }}%;"></div>
+            </div>
+
+            <div style="font-size: 1.1rem; font-weight: 700;">{{ tank.level_percent | int }}%</div>
+
+            <div
+                style="font-size: 0.75rem; margin-top: 0.25rem; font-weight: 600; color: {{ '#e53e3e' if tank.level_percent < 20 else '#718096' }};">
+                {{ "Empty!" if tank.level_percent < 20 else ("Refill Soon" if tank.level_percent < 40 else "Sufficient"
+                    ) }} </div>
+
+                    <div style="position: absolute; top: 1rem; right: 1rem; font-size: 0.8rem;">{{ icon }}</div>
+            </div>
+            {% endif %}
+            {% endfor %}
+    </div>
+
+    <!-- 6. SUMMARY BAR -->
+    <div class="tank-summary-bar">
+        <div style="font-weight: 600; font-size: 0.9rem;">Tank Health:</div>
+        <div style="display: flex; gap: 1rem; font-size: 0.9rem;">
+            <span style="color: var(--success-color);">✅ <span id="count-ok">--</span> OK</span>
+            <span style="color: var(--warning-color);">⚠ <span id="count-low">--</span> Low</span>
+            <span style="color: var(--danger-color);">❌ <span id="count-empty">--</span> Empty</span>
+        </div>
+    </div>
+
+    <!-- TANK INFO MODAL -->
+    <div id="tankModal" class="tank-modal-overlay" onclick="closeModal(event)">
+        <div class="tank-modal" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()">×</button>
+
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;" id="modalIcon">🛢️</div>
+                <h2 id="modalTitle" style="margin: 0; color: var(--text-primary); text-transform: capitalize;">Tank Name
+                </h2>
+                <div id="modalType" style="color: var(--text-secondary); font-size: 0.9rem;">Type</div>
+            </div>
+
+            <div style="background: var(--bg-color); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                    <span style="color: var(--text-secondary);">Current Level</span>
+                    <span id="modalLevel" style="font-weight: 700;">--%</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="modalBar" style="height: 100%; background: var(--primary-color); width: 0%;"></div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="card"
+                    style="padding: 1rem; text-align: center; box-shadow: none; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Est. Days Left</div>
+                    <div id="modalDays"
+                        style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-top: 0.25rem;">
+                        --</div>
+                </div>
+                <div class="card"
+                    style="padding: 1rem; text-align: center; box-shadow: none; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Last Refill</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-top: 0.25rem;">3
+                        Days ago</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: center; font-size: 0.8rem; color: var(--text-secondary);">
+                Daily Consumption: <span style="font-weight: 600;">~1.2 Liters</span>
+            </div>
+        </div>
+    </div>
+
+    {% endblock %}
+
+    {% block scripts %}
+    <script>
+        // Global Modal Functions
+        function openTankModal(name, level, type) {
+            const modal = document.getElementById('tankModal');
+            // Clean name
+            const cleanName = name.replace(/_/g, ' ').replace('pump', '');
+
+            document.getElementById('modalTitle').innerText = cleanName;
+            document.getElementById('modalType').innerText = type + ' Tank';
+            document.getElementById('modalLevel').innerText = level + '%';
+            document.getElementById('modalBar').style.width = level + '%';
+
+            // Mock calculations
+            const daysLeft = Math.max(0, Math.round(level / 5)); // Roughly 5% per day
+            document.getElementById('modalDays').innerText = daysLeft + ' Days';
+
+            // Dynamic color for bar
+            const bar = document.getElementById('modalBar');
+            if (level < 20) bar.style.background = 'var(--danger-color)';
+            else if (level < 40) bar.style.background = 'var(--warning-color)';
+            else bar.style.background = 'var(--primary-color)';
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal(e) {
+            if (e && e.target !== e.currentTarget) return; // Only if clicking overlay or button
+            document.getElementById('tankModal').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simple script to tally tank statuses
+            let ok = 0, low = 0, empty = 0;
+
+            // Loop over data passed from backend (rendered as JS array)
+            const levels = [
+                {% for tank in tanks %}
+                {{ tank.level_percent }},
+            {% endfor %}
+        ];
+
+        levels.forEach(l => {
+            if (l < 20) empty++;
+            else if (l < 40) low++;
+            else ok++;
+        });
+
+        document.getElementById('count-ok').textContent = ok;
+        document.getElementById('count-low').textContent = low;
+        document.getElementById('count-empty').textContent = empty;
+    });
+    </script>
+    {% endblock %}
+    ```

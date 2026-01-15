@@ -84,37 +84,12 @@
 
 {% block scripts %}
 <script>
+    let lastActionTime = 0;
+
     async function toggleControl(name, state) {
+        lastActionTime = Date.now();
         // Optimistic UI update
-        const badge = document.getElementById(`badge-${name}`);
-        const card = document.getElementById(`card-${name}`);
-        const iconSpan = document.getElementById(`icon-${name}`);
-
-        if (state) {
-            badge.textContent = 'ON';
-            badge.classList.remove('status-offline');
-            badge.classList.add('status-online');
-
-            if (card) {
-                card.classList.remove('card-off');
-                card.classList.add('card-on'); // Green state
-                // Switch Icon
-                const onIcon = card.getAttribute('data-icon-on');
-                if (onIcon && iconSpan) iconSpan.textContent = onIcon;
-            }
-        } else {
-            badge.textContent = 'OFF';
-            badge.classList.remove('status-online');
-            badge.classList.add('status-offline');
-
-            if (card) {
-                card.classList.remove('card-on');
-                card.classList.add('card-off'); // Grey state
-                // Switch Icon
-                const offIcon = card.getAttribute('data-icon-off');
-                if (offIcon && iconSpan) iconSpan.textContent = offIcon;
-            }
-        }
+        updateUIControl(name, state);
 
         try {
             const response = await fetch('/api/controls', {
@@ -124,7 +99,6 @@
             });
             const result = await response.json();
             if (!result.success) {
-                // Revert if failed
                 alert('Failed to toggle control');
                 location.reload();
             }
@@ -133,5 +107,65 @@
             alert('Network error');
         }
     }
+
+    function updateUIControl(name, state) {
+        const badge = document.getElementById(`badge-${name}`);
+        const card = document.getElementById(`card-${name}`);
+        const iconSpan = document.getElementById(`icon-${name}`);
+        const input = card ? card.querySelector('input[type="checkbox"]') : null;
+
+        if (input) input.checked = state;
+
+        if (state) {
+            if (badge) {
+                badge.textContent = 'ON';
+                badge.classList.remove('status-offline');
+                badge.classList.add('status-online');
+            }
+            if (card) {
+                card.classList.remove('card-off');
+                card.classList.add('card-on');
+                const onIcon = card.getAttribute('data-icon-on');
+                if (onIcon && iconSpan) iconSpan.textContent = onIcon;
+            }
+        } else {
+            if (badge) {
+                badge.textContent = 'OFF';
+                badge.classList.remove('status-online');
+                badge.classList.add('status-offline');
+            }
+            if (card) {
+                card.classList.remove('card-on');
+                card.classList.add('card-off');
+                const offIcon = card.getAttribute('data-icon-off');
+                if (offIcon && iconSpan) iconSpan.textContent = offIcon;
+            }
+        }
+    }
+
+    // --- REAL TIME POLL ---
+    async function syncControls() {
+        // Skip sync if user just clicked something (3s debounce)
+        if (Date.now() - lastActionTime < 3000) return;
+
+        try {
+            const response = await fetch('/api/controls');
+            const states = await response.json();
+
+            for (const [name, state] of Object.entries(states)) {
+                const card = document.getElementById(`card-${name}`);
+                if (!card) continue;
+
+                const input = card.querySelector('input[type="checkbox"]');
+                if (input && input.checked !== state) {
+                    updateUIControl(name, state);
+                }
+            }
+        } catch (e) {
+            console.warn('Sync failed', e);
+        }
+    }
+
+    setInterval(syncControls, 3000); // Check every 3 seconds
 </script>
 {% endblock %}
