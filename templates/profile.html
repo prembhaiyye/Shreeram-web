@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 style="margin-bottom: 1.5rem;">Profile</h1>
+
+<div class="card" style="margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <div
+            style="width: 50px; height: 50px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+            👤
+        </div>
+        <div>
+            <div style="font-weight: 600;">{{ user.name }}</div>
+            <div style="color: var(--text-secondary); font-size: 0.9rem;">{{ user.email }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card-grid" style="grid-template-columns: 1fr;">
+    <a href="{{ url_for('views.developer') }}" class="card" style="flex-direction: row; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span style="font-size: 1.5rem;">🧑‍💻</span>
+            <span class="card-title" style="color: var(--text-primary); font-size: 1rem;">Developer Panel</span>
+        </div>
+        <span style="color: var(--text-secondary);">→</span>
+    </a>
+
+    <a href="{{ url_for('views.tanks') }}" class="card" style="flex-direction: row; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span style="font-size: 1.5rem;">🛢️</span>
+            <span class="card-title" style="color: var(--text-primary); font-size: 1rem;">Tank Levels</span>
+        </div>
+        <span style="color: var(--text-secondary);">→</span>
+    </a>
+
+    <a href="{{ url_for('auth.logout') }}" class="card"
+        style="flex-direction: row; align-items: center; border: 1px solid var(--danger-color);">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span style="font-size: 1.5rem;">🚪</span>
+            <span class="card-title" style="color: var(--danger-color); font-size: 1rem;">Logout</span>
+        </div>
+    </a>
+</div>
+{% endblock %}

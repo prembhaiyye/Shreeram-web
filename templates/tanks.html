@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+    <a href="{{ url_for('views.profile') }}" class="btn"
+        style="width: auto; padding: 0.5rem 1rem; background: transparent; color: var(--text-secondary);">← Back</a>
+    <h1>Tank Levels</h1>
+</div>
+
+<div class="card-grid">
+    {% for tank in tanks %}
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title" style="text-transform: capitalize;">{{ tank.name.replace('_', ' ') }}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="flex-grow: 1; background: #e2e8f0; height: 20px; border-radius: 10px; overflow: hidden;">
+                <div
+                    style="width: {{ tank.level_percent }}%; height: 100%; background: {{ 'var(--danger-color)' if tank.level_percent < 20 else 'var(--primary-color)' }};">
+                </div>
+            </div>
+            <span style="font-weight: bold; width: 40px;">{{ tank.level_percent | int }}%</span>
+        </div>
+        {% if tank.level_percent < 20 %} <div
+            style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--danger-color);">Wait, refill needed!
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+</div>
+
+<div
+    style="margin-top: 2rem; padding: 1rem; background: #fffaf0; border-left: 4px solid var(--warning-color); color: #744210;">
+    <strong>Note:</strong> Tank values are approximated and may have small differences vs real volume.
+</div>
+{% endblock %}
