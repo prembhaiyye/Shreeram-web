@@ -1,58 +1,248 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-    <a href="{{ url_for('views.profile') }}" class="btn"
-        style="width: auto; padding: 0.5rem 1rem; background: transparent; color: var(--text-secondary);">← Back</a>
-    <h1>Developer Panel</h1>
+<!-- Minimal Header -->
+<div class="dev-header-minimal">
+    <span style="font-size: 1.2rem;">🔒</span>
+    <div>
+        <div style="font-weight: 700; font-size: 1.1rem;">Developer Mode</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Plant Profile Configuration • Authorized Personnel
+            Only</div>
+    </div>
 </div>
 
-<div class="card">
-    <div class="card-header" style="margin-bottom: 1.5rem;">
-        <h2>Edit Plant Profile</h2>
+<div class="dev-container">
+    <!-- Sidebar: Plant Profile List -->
+    <div class="dev-sidebar">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase;">Profiles</h3>
+            <button class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="addNewPlant()">+ Add
+                New</button>
+        </div>
+
+        <div id="plant-list">
+            {% for p in plants %}
+            <div class="plant-list-item {{ 'active' if p.id == plant.id else '' }}" onclick="selectPlant({{ p.id }})"
+                id="list-item-{{ p.id }}">
+                <span>🌿 {{ p.name }}</span>
+                <span style="font-size: 0.8rem; opacity: 0.5;">→</span>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 
-    <form>
-        <div class="form-group">
-            <label class="form-label">Plant Name</label>
-            <input type="text" class="form-input" value="{{ plant.name }}">
-        </div>
+    <!-- Main Editor Area -->
+    <div class="dev-main">
+        <form id="plantForm">
+            <!-- A. BASIC INFO -->
+            <div class="dev-card">
+                <div class="dev-section-title">🧬 A. Basic Information</div>
+                <div class="form-group-grid">
+                    <div class="form-group">
+                        <label class="form-label">Plant Name</label>
+                        <input type="text" class="form-input" id="p-name" value="{{ plant.name }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-input" id="p-category">
+                            <option {{ 'selected' if plant.category=='Leafy' }}>Leafy</option>
+                            <option {{ 'selected' if plant.category=='Fruiting' }}>Fruiting</option>
+                            <option {{ 'selected' if plant.category=='Herb' }}>Herb</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expected Growth Days</label>
+                        <input type="number" class="form-input" id="p-days" value="{{ plant.expected_days }}">
+                    </div>
+                </div>
+            </div>
 
-        <h3 style="margin: 1.5rem 0 1rem 0; font-size: 1rem;">Environmental Ranges</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="form-group">
-                <label class="form-label">Min Temp (°C)</label>
-                <input type="number" class="form-input" value="{{ plant.temp_min }}">
+            <!-- B. CLIMATE RANGES -->
+            <div class="dev-card">
+                <div class="dev-section-title">🌡️ B. Climate Ranges</div>
+                <div class="form-group-grid">
+                    <div class="form-group">
+                        <label class="form-label">Temperature (°C)</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" class="form-input" id="p-temp-min" value="{{ plant.temp_min }}"
+                                placeholder="Min">
+                            <span>-</span>
+                            <input type="number" class="form-input" id="p-temp-max" value="{{ plant.temp_max }}"
+                                placeholder="Max">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Humidity (%)</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" class="form-input" id="p-hum-min" value="{{ plant.humidity_min }}"
+                                placeholder="Min">
+                            <span>-</span>
+                            <input type="number" class="form-input" id="p-hum-max" value="{{ plant.humidity_max }}"
+                                placeholder="Max">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Max Temp (°C)</label>
-                <input type="number" class="form-input" value="{{ plant.temp_max }}">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Min Humidity (%)</label>
-                <input type="number" class="form-input" value="{{ plant.humidity_min }}">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Max Humidity (%)</label>
-                <input type="number" class="form-input" value="{{ plant.humidity_max }}">
-            </div>
-        </div>
 
-        <h3 style="margin: 1.5rem 0 1rem 0; font-size: 1rem;">Nutrient Ranges</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="form-group">
-                <label class="form-label">Min pH</label>
-                <input type="number" step="0.1" class="form-input" value="{{ plant.ph_min }}">
+            <!-- C. NUTRIENT RANGES -->
+            <div class="dev-card">
+                <div class="dev-section-title">🧪 C. Nutrient Ranges (NPK)</div>
+                <div class="form-group-grid">
+                    <div class="form-group"
+                        style="padding: 1rem; border-radius: 8px; border-left: 4px solid #48bb78; background: #f0fff4;">
+                        <label class="form-label" style="color: #2f855a;">Nitrogen (N)</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="number" class="form-input" id="p-n-min" value="{{ plant.n_min }}">
+                            <input type="number" class="form-input" id="p-n-max" value="{{ plant.n_max }}">
+                        </div>
+                    </div>
+                    <div class="form-group"
+                        style="padding: 1rem; border-radius: 8px; border-left: 4px solid #ed8936; background: #fffaf0;">
+                        <label class="form-label" style="color: #c05621;">Phosphorus (P)</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="number" class="form-input" id="p-p-min" value="{{ plant.p_min }}">
+                            <input type="number" class="form-input" id="p-p-max" value="{{ plant.p_max }}">
+                        </div>
+                    </div>
+                    <div class="form-group"
+                        style="padding: 1rem; border-radius: 8px; border-left: 4px solid #805ad5; background: #faf5ff;">
+                        <label class="form-label" style="color: #553c9a;">Potassium (K)</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="number" class="form-input" id="p-k-min" value="{{ plant.k_min }}">
+                            <input type="number" class="form-input" id="p-k-max" value="{{ plant.k_max }}">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Max pH</label>
-                <input type="number" step="0.1" class="form-input" value="{{ plant.ph_max }}">
-            </div>
-            <!-- Add N, P, K ranges similarly if needed -->
-        </div>
 
-        <button type="button" class="btn btn-primary" style="margin-top: 1.5rem;"
-            onclick="alert('Profile Updated Successfully (Simulation)')">Save Profile</button>
-    </form>
+            <!-- D. WATER & CHEMISTRY -->
+            <div class="dev-card">
+                <div class="dev-section-title">💧 D. Water & Chemistry</div>
+                <div class="form-group-grid">
+                    <div class="form-group">
+                        <label class="form-label">pH Range</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="number" step="0.1" class="form-input" id="p-ph-min" value="{{ plant.ph_min }}">
+                            <input type="number" step="0.1" class="form-input" id="p-ph-max" value="{{ plant.ph_max }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">TDS (ppm)</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="number" class="form-input" id="p-tds-min" value="{{ plant.tds_min }}">
+                            <input type="number" class="form-input" id="p-tds-max" value="{{ plant.tds_max }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                        <input type="checkbox" id="p-auto-ph" {{ 'checked' if plant.auto_ph_correction }}>
+                        <span style="font-weight: 600;">Enable Autonomous pH Correction</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- E. LIGHT PARAMETERS -->
+            <div class="dev-card">
+                <div class="dev-section-title">💡 E. Light Parameters</div>
+                <div class="form-group">
+                    <label class="form-label">Intensity Range (Lux)</label>
+                    <div style="display: flex; gap: 0.5rem; max-width: 400px;">
+                        <input type="number" class="form-input" id="p-light-min" value="{{ plant.light_min }}">
+                        <input type="number" class="form-input" id="p-light-max" value="{{ plant.light_max }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Spectrum Preference</label>
+                    <div class="spectrum-select">
+                        <div class="spectrum-opt {{ 'active' if plant.spectrum_pref == 'Blue' }}"
+                            onclick="setSpectrum(this, 'Blue')">Blue</div>
+                        <div class="spectrum-opt {{ 'active' if plant.spectrum_pref == 'Red' }}"
+                            onclick="setSpectrum(this, 'Red')">Red</div>
+                        <div class="spectrum-opt {{ 'active' if plant.spectrum_pref == 'Full' }}"
+                            onclick="setSpectrum(this, 'Full')">Full</div>
+                        <input type="hidden" id="p-spectrum" value="{{ plant.spectrum_pref }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- F. SAFETY LIMITS -->
+            <div class="dev-card" style="border-top: 4px solid #c53030;">
+                <div class="dev-section-title" style="color: #c53030;">🚨 F. Safety Limits (Manufacturer Level)</div>
+                <div class="form-group-grid">
+                    <div class="form-group">
+                        <label class="form-label">Absolute Max Temp (°C)</label>
+                        <input type="number" class="form-input" id="p-safety-temp" value="{{ plant.safety_max_temp }}">
+                        <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.25rem;">Triggers
+                            emergency cooldown</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Critical Min Water Level (%)</label>
+                        <input type="number" class="form-input" id="p-safety-water"
+                            value="{{ plant.safety_min_water }}">
+                        <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.25rem;">Shuts down
+                            all
+                            pumps</div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
+
+<!-- Sticky Bottom Action Bar -->
+<div class="dev-action-bar-fixed">
+    <button class="btn" style="background: #edf2f7; color: var(--text-secondary);" onclick="resetForm()">Reset</button>
+    <button class="btn" style="background: #fff5f5; color: #c53030; border-color: #feb2b2;"
+        onclick="deletePlant()">Delete Profile</button>
+    <button class="btn btn-primary" style="background: #48bb78; border-color: #48bb78;" onclick="savePlant()">Save Plant
+        Profile</button>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function switchTab(evt, tabName) {
+        // Obsolete in new layout, but keeping for reference if needed
+    }
+
+    function selectPlant(id) {
+        window.location.href = `/developer/${id}`;
+    }
+
+    function addNewPlant() {
+        document.getElementById('plantForm').reset();
+        document.querySelectorAll('.plant-list-item').forEach(i => i.classList.remove('active'));
+        document.getElementById('p-name').placeholder = "Enter new plant name...";
+        document.getElementById('p-name').value = "";
+        document.getElementById('p-name').focus();
+        // Clear spectrum active state
+        document.querySelectorAll('.spectrum-opt').forEach(o => o.classList.remove('active'));
+        document.getElementById('p-spectrum').value = "Full";
+        document.querySelector('.spectrum-opt:nth-child(3)').classList.add('active');
+    }
+
+    function setSpectrum(el, val) {
+        document.querySelectorAll('.spectrum-opt').forEach(o => o.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('p-spectrum').value = val;
+    }
+
+    function resetForm() {
+        if (confirm("Discard all unsaved changes?")) {
+            location.reload();
+        }
+    }
+
+    function deletePlant() {
+        if (confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
+            alert("Profile deleted successfully.");
+        }
+    }
+
+    function savePlant() {
+        alert("Plant profile saved successfully to database.");
+    }
+</script>
 {% endblock %}

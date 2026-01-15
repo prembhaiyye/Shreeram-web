@@ -23,6 +23,13 @@ class Plant(db.Model):
     ph_max = db.Column(db.Float, default=6.5)
     tds_min = db.Column(db.Float, default=800.0)
     tds_max = db.Column(db.Float, default=1200.0)
+    # Industrial & Safety Fields
+    category = db.Column(db.String(50), default="Leafy") # Leafy / Fruiting / Herb
+    auto_ph_correction = db.Column(db.Boolean, default=True)
+    spectrum_pref = db.Column(db.String(50), default="Full") # Blue / Red / Full
+    safety_max_temp = db.Column(db.Float, default=40.0)
+    safety_min_water = db.Column(db.Float, default=15.0)
+    # Nutrient ranges
     n_min = db.Column(db.Float, default=100.0)
     n_max = db.Column(db.Float, default=200.0)
     p_min = db.Column(db.Float, default=30.0)

@@ -1,249 +1,433 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block content %}
 <h1 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Dashboard</h1>
 
+<div id="global-alert-strip" class="monitor-alert-strip" onclick="scrollToProblem()">
+    <span class="alert-icon">⚠</span>
+    <span id="alert-text">System Analytics Active</span>
+</div>
+
 <div class="card-grid">
     <!-- Temperature -->
-    <a href="{{ url_for('views.graph', sensor_type='temperature') }}" class="card theme-temp" id="card-temperature">
-        <span class="bg-icon">🌡️</span>
+    <div class="sensor-card theme-temp" id="card-temperature" onclick="toggleCardExpand('temperature')">
         <div class="card-header">
             <span class="card-title">Temperature</span>
-            <span class="indicator indicator-green" id="ind-temperature"></span>
+            <span class="status-badge status-normal" id="status-temperature">NORMAL</span>
         </div>
-        <div>
+        <div class="card-main">
             <span class="card-value" id="val-temperature">--</span>
             <span class="card-unit">°C</span>
         </div>
-    </a>
+        <div class="ideal-range">Ideal: {{ plant.temp_min }}–{{ plant.temp_max }}°C</div>
+
+        <div class="trend-container">
+            <div class="trend-sparkline">
+                <div class="trend-bar" id="trend-bar-temperature" style="width: 50%;"></div>
+            </div>
+            <div class="trend-info">
+                <span id="trend-arrow-temperature">→</span>
+            </div>
+        </div>
+
+        <div class="card-expanded-content">
+            <div class="last-updated">Last update: <span class="time-stamp">Just now</span></div>
+            <a href="{{ url_for('views.graph', sensor_type='temperature') }}" class="btn-detail">View Detailed Graph</a>
+        </div>
+    </div>
 
     <!-- Humidity -->
-    <a href="{{ url_for('views.graph', sensor_type='humidity') }}" class="card theme-water" id="card-humidity">
-        <span class="bg-icon">💧</span>
+    <div class="sensor-card theme-water" id="card-humidity" onclick="toggleCardExpand('humidity')">
         <div class="card-header">
             <span class="card-title">Humidity</span>
-            <span class="indicator indicator-green" id="ind-humidity"></span>
+            <span class="status-badge status-normal" id="status-humidity">NORMAL</span>
         </div>
-        <div>
+        <div class="card-main">
             <span class="card-value" id="val-humidity">--</span>
             <span class="card-unit">%</span>
         </div>
-    </a>
+        <div class="ideal-range">Ideal: {{ plant.humidity_min }}–{{ plant.humidity_max }}%</div>
+
+        <div class="trend-container">
+            <div class="trend-sparkline">
+                <div class="trend-bar" id="trend-bar-humidity" style="width: 50%;"></div>
+            </div>
+            <div class="trend-info">
+                <span id="trend-arrow-humidity">→</span>
+            </div>
+        </div>
+
+        <div class="card-expanded-content">
+            <div class="last-updated">Last update: <span class="time-stamp">Just now</span></div>
+            <a href="{{ url_for('views.graph', sensor_type='humidity') }}" class="btn-detail">View Detailed Graph</a>
+        </div>
+    </div>
 
     <!-- pH -->
-    <a href="{{ url_for('views.graph', sensor_type='ph') }}" class="card theme-nutrient" id="card-ph">
-        <span class="bg-icon">🧪</span>
+    <div class="sensor-card theme-nutrient" id="card-ph" onclick="toggleCardExpand('ph')">
         <div class="card-header">
-            <span class="card-title">pH</span>
-            <span class="indicator indicator-green" id="ind-ph"></span>
+            <span class="card-title">pH Level</span>
+            <span class="status-badge status-normal" id="status-ph">NORMAL</span>
         </div>
-        <div>
+        <div class="card-main">
             <span class="card-value" id="val-ph">--</span>
             <span class="card-unit">pH</span>
         </div>
-    </a>
+        <div class="ideal-range">Ideal: {{ plant.ph_min }}–{{ plant.ph_max }}</div>
+
+        <div class="trend-container">
+            <div class="trend-sparkline">
+                <div class="trend-bar" id="trend-bar-ph" style="width: 50%;"></div>
+            </div>
+            <div class="trend-info">
+                <span id="trend-arrow-ph">→</span>
+            </div>
+        </div>
+
+        <div class="card-expanded-content">
+            <div class="last-updated">Last update: <span class="time-stamp">Just now</span></div>
+            <a href="{{ url_for('views.graph', sensor_type='ph') }}" class="btn-detail">View Detailed Graph</a>
+        </div>
+    </div>
 
     <!-- TDS -->
-    <a href="{{ url_for('views.graph', sensor_type='tds') }}" class="card theme-nutrient" id="card-tds">
-        <span class="bg-icon">🧂</span>
+    <div class="sensor-card theme-nutrient" id="card-tds" onclick="toggleCardExpand('tds')">
         <div class="card-header">
-            <span class="card-title">TDS</span>
-            <span class="indicator indicator-green" id="ind-tds"></span>
+            <span class="card-title">TDS / EC</span>
+            <span class="status-badge status-normal" id="status-tds">NORMAL</span>
         </div>
-        <div>
+        <div class="card-main">
             <span class="card-value" id="val-tds">--</span>
             <span class="card-unit">ppm</span>
         </div>
-    </a>
+        <div class="ideal-range">Ideal: {{ plant.tds_min }}–{{ plant.tds_max }}</div>
+
+        <div class="trend-container">
+            <div class="trend-sparkline">
+                <div class="trend-bar" id="trend-bar-tds" style="width: 50%;"></div>
+            </div>
+            <div class="trend-info">
+                <span id="trend-arrow-tds">→</span>
+            </div>
+        </div>
+
+        <div class="card-expanded-content">
+            <div class="last-updated">Last update: <span class="time-stamp">Just now</span></div>
+            <a href="{{ url_for('views.graph', sensor_type='tds') }}" class="btn-detail">View Detailed Graph</a>
+        </div>
+    </div>
 
     <!-- Nitrogen -->
-    <a href="{{ url_for('views.graph', sensor_type='n') }}" class="card theme-nutrient" id="card-n">
-        <span class="bg-icon">🌿</span>
+    <div class="sensor-card theme-nutrient" id="card-n" onclick="toggleCardExpand('n')">
         <div class="card-header">
             <span class="card-title">Nitrogen (N)</span>
-            <span class="indicator indicator-green" id="ind-n"></span>
+            <span class="status-badge status-normal" id="status-n">NORMAL</span>
         </div>
-        <div>
+        <div class="card-main">
             <span class="card-value" id="val-n">--</span>
-            <span class="card-unit">mg/kg</span>
+            <span class="card-unit">mg/l</span>
         </div>
-    </a>
+        <div class="ideal-range">Ideal: {{ plant.n_min }}–{{ plant.n_max }}</div>
 
-    <!-- Phosphorus -->
-    <a href="{{ url_for('views.graph', sensor_type='p') }}" class="card theme-nutrient" id="card-p">
-        <span class="bg-icon">🧬</span>
+        <div class="trend-container">
+            <div class="trend-sparkline">
+                <div class="trend-bar" id="trend-bar-n" style="width: 50%;"></div>
+            </div>
+            <div class="trend-info">
+                <span id="trend-arrow-n">→</span>
+            </div>
+        </div>
+
+        <div class="card-expanded-content">
+            <div class="last-updated">Last update: <span class="time-stamp">Just now</span></div>
+            <a href="{{ url_for('views.graph', sensor_type='n') }}" class="btn-detail">View Detailed Graph</a>
+        </div>
+    </div>
+
+    <!-- Phosphorous -->
+    <div class="sensor-card theme-nutrient" id="card-p" onclick="toggleCardExpand('p')">
         <div class="card-header">
-            <span class="card-title">Phosphorus (P)</span>
-            <span class="indicator indicator-green" id="ind-p"></span>
+            <span class="card-title">Phosphorous (P)</span>
+            <span class="status-badge status-normal" id="status-p">NORMAL</span>
         </div>
-        <div>
+        <div class="card-main">
             <span class="card-value" id="val-p">--</span>
-            <span class="card-unit">mg/kg</span>
+            <span class="card-unit">mg/l</span>
         </div>
-    </a>
+        <div class="ideal-range">Ideal: {{ plant.p_min }}–{{ plant.p_max }}</div>
+
+        <div class="trend-container">
+            <div class="trend-sparkline">
+                <div class="trend-bar" id="trend-bar-p" style="width: 50%;"></div>
+            </div>
+            <div class="trend-info">
+                <span id="trend-arrow-p">→</span>
+            </div>
+        </div>
+
+        <div class="card-expanded-content">
+            <div class="last-updated">Last update: <span class="time-stamp">Just now</span></div>
+            <a href="{{ url_for('views.graph', sensor_type='p') }}" class="btn-detail">View Detailed Graph</a>
+        </div>
+    </div>
 
     <!-- Potassium -->
-    <a href="{{ url_for('views.graph', sensor_type='k') }}" class="card theme-nutrient" id="card-k">
-        <span class="bg-icon">🍌</span>
+    <div class="sensor-card theme-nutrient" id="card-k" onclick="toggleCardExpand('k')">
         <div class="card-header">
             <span class="card-title">Potassium (K)</span>
-            <span class="indicator indicator-green" id="ind-k"></span>
+            <span class="status-badge status-normal" id="status-k">NORMAL</span>
         </div>
-        <div>
+        <div class="card-main">
             <span class="card-value" id="val-k">--</span>
-            <span class="card-unit">mg/kg</span>
+            <span class="card-unit">mg/l</span>
         </div>
-    </a>
+        <div class="ideal-range">Ideal: {{ plant.k_min }}–{{ plant.k_max }}</div>
 
-    <!-- Light -->
-    <a href="{{ url_for('views.graph', sensor_type='light') }}" class="card theme-light" id="card-light">
-        <span class="bg-icon">☀️</span>
-        <div class="card-header">
-            <span class="card-title">Light Intensity</span>
-            <span class="indicator indicator-green" id="ind-light"></span>
+        <div class="trend-container">
+            <div class="trend-sparkline">
+                <div class="trend-bar" id="trend-bar-k" style="width: 50%;"></div>
+            </div>
+            <div class="trend-info">
+                <span id="trend-arrow-k">→</span>
+            </div>
         </div>
-        <div>
+
+        <div class="card-expanded-content">
+            <div class="last-updated">Last update: <span class="time-stamp">Just now</span></div>
+            <a href="{{ url_for('views.graph', sensor_type='k') }}" class="btn-detail">View Detailed Graph</a>
+        </div>
+    </div>
+
+    <!-- Light Intensity -->
+    <div class="sensor-card theme-light" id="card-light" onclick="toggleCardExpand('light')">
+        <div class="card-header">
+            <span class="card-title">Light</span>
+            <span class="status-badge status-normal" id="status-light">NORMAL</span>
+        </div>
+        <div class="card-main">
             <span class="card-value" id="val-light">--</span>
             <span class="card-unit">lux</span>
         </div>
-    </a>
+        <div class="ideal-range">Ideal: {{ plant.light_min }}–{{ plant.light_max }}</div>
+
+        <div class="trend-container">
+            <div class="trend-sparkline">
+                <div class="trend-bar" id="trend-bar-light" style="width: 50%;"></div>
+            </div>
+            <div class="trend-info">
+                <span id="trend-arrow-light">→</span>
+            </div>
+        </div>
+
+        <div class="card-expanded-content">
+            <div class="last-updated">Last update: <span class="time-stamp">Just now</span></div>
+            <a href="{{ url_for('views.graph', sensor_type='light') }}" class="btn-detail">View Detailed Graph</a>
+        </div>
+    </div>
 
     <!-- Water Level -->
-    <a href="{{ url_for('views.graph', sensor_type='water_level') }}" class="card theme-water" id="card-water_level">
-        <span class="bg-icon">🌊</span>
+    <div class="sensor-card theme-water" id="card-water_level" onclick="toggleCardExpand('water_level')">
         <div class="card-header">
-            <span class="card-title">Water Level</span>
-            <span class="indicator indicator-green" id="ind-water_level"></span>
+            <span class="card-title">Reservoir</span>
+            <span class="status-badge status-normal" id="status-water_level">NORMAL</span>
         </div>
-        <div>
+        <div class="card-main">
             <span class="card-value" id="val-water_level">--</span>
             <span class="card-unit">%</span>
         </div>
-    </a>
+        <div class="ideal-range">Ideal: 50%–100%</div>
+
+        <div class="trend-container">
+            <div class="trend-sparkline">
+                <div class="trend-bar" id="trend-bar-water_level" style="width: 50%;"></div>
+            </div>
+            <div class="trend-info">
+                <span id="trend-arrow-water_level">→</span>
+            </div>
+        </div>
+
+        <div class="card-expanded-content">
+            <div class="last-updated">Last update: <span class="time-stamp">Just now</span></div>
+            <a href="{{ url_for('views.graph', sensor_type='water_level') }}" class="btn-detail">View Detailed Graph</a>
+        </div>
+    </div>
 
     <!-- CPU Temp -->
-    <a href="{{ url_for('views.graph', sensor_type='cpu_temp') }}" class="card theme-temp" id="card-cpu_temp">
-        <span class="bg-icon">💻</span>
+    <div class="sensor-card theme-temp" id="card-cpu_temp" onclick="toggleCardExpand('cpu_temp')">
         <div class="card-header">
-            <span class="card-title">CPU Temp</span>
-            <span class="indicator indicator-green" id="ind-cpu_temp"></span>
+            <span class="card-title">CPU Status</span>
+            <span class="status-badge status-normal" id="status-cpu_temp">NORMAL</span>
         </div>
-        <div>
+        <div class="card-main">
             <span class="card-value" id="val-cpu_temp">--</span>
             <span class="card-unit">°C</span>
         </div>
-    </a>
+        <div class="ideal-range">Ideal: 40°C–65°C</div>
 
+        <div class="trend-container">
+            <div class="trend-sparkline">
+                <div class="trend-bar" id="trend-bar-cpu_temp" style="width: 50%;"></div>
+            </div>
+            <div class="trend-info">
+                <span id="trend-arrow-cpu_temp">→</span>
+            </div>
+        </div>
+
+        <div class="card-expanded-content">
+            <div class="last-updated">Last update: <span class="time-stamp">Just now</span></div>
+            <a href="{{ url_for('views.graph', sensor_type='cpu_temp') }}" class="btn-detail">View Detailed Graph</a>
+        </div>
+    </div>
 
     <!-- Gas Status -->
-    <a href="{{ url_for('views.graph', sensor_type='gas') }}" class="card theme-warning" id="card-gas">
-        <span class="bg-icon">⚠️</span>
+    <div class="sensor-card theme-warning" id="card-gas" onclick="toggleCardExpand('gas')">
         <div class="card-header">
-            <span class="card-title">Gas Status</span>
-            <span class="indicator indicator-green" id="ind-gas"></span>
+            <span class="card-title">Air Quality</span>
+            <span class="status-badge status-normal" id="status-gas">OK</span>
         </div>
-        <div>
-            <span class="card-value" id="val-gas">OK</span>
+        <div class="card-main">
+            <span class="card-value" id="val-gas">--</span>
             <span class="card-unit"></span>
         </div>
-    </a>
+        <div class="ideal-range">Status: Safety Monitoring</div>
 
+        <div class="trend-container">
+            <div class="trend-sparkline">
+                <div class="trend-bar" id="trend-bar-gas" style="width: 100%;"></div>
+            </div>
+            <div class="trend-info">
+                <span id="trend-arrow-gas">→</span>
+            </div>
+        </div>
+
+        <div class="card-expanded-content">
+            <div class="last-updated">Last update: <span class="time-stamp">Just now</span></div>
+            <a href="{{ url_for('views.graph', sensor_type='gas') }}" class="btn-detail">View Detailed Graph</a>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    function getStatusClass(type, value) {
-        let val = parseFloat(value);
-        if (isNaN(val)) return '';
+    // Plant Ideal Ranges from Jinja
+    const IDEALS = {
+        temperature: { min: {{ plant.temp_min }}, max: {{ plant.temp_max }} },
+        humidity: { min: {{ plant.humidity_min }}, max: {{ plant.humidity_max }} },
+        ph: { min: {{ plant.ph_min }}, max: {{ plant.ph_max }} },
+        tds: { min: {{ plant.tds_min }}, max: {{ plant.tds_max }} },
+        n: { min: {{ plant.n_min }}, max: {{ plant.n_max }} },
+        p: { min: {{ plant.p_min }}, max: {{ plant.p_max }} },
+        k: { min: {{ plant.k_min }}, max: {{ plant.k_max }} },
+        light: { min: {{ plant.light_min }}, max: {{ plant.light_max }} },
+        water_level: { min: 40, max: 100 },
+        cpu_temp: { min: 0, max: 65 }
+    };
 
-        // Thresholds
-        // Temp: <15(Red), 15-35(Green), >35(Red)
-        // Humidity: <30(Red), 30-80(Green), >80(Red) for visual pop
+    let previousValues = {};
+    let activeAlerts = 0;
 
-        switch (type) {
-            case 'temperature':
-                if (val < 15 || val > 35) return 'card-status-danger';
-                if (val < 18 || val > 30) return 'card-status-warning';
-                return 'card-status-ok';
-            case 'humidity':
-                if (val < 30 || val > 80) return 'card-status-danger';
-                if (val < 40 || val > 70) return 'card-status-warning';
-                return 'card-status-ok';
-            case 'ph':
-                if (val < 5.0 || val > 7.5) return 'card-status-danger';
-                if (val < 5.5 || val > 6.5) return 'card-status-warning';
-                return 'card-status-ok';
-            case 'tds':
-                if (val < 200 || val > 1500) return 'card-status-danger';
-                if (val < 400 || val > 1200) return 'card-status-warning';
-                return 'card-status-ok';
-            case 'n':
-            case 'p':
-            case 'k':
-                if (val < 50 || val > 300) return 'card-status-danger';
-                return 'card-status-ok';
-            case 'light':
-                if (val < 1000) return 'card-status-warning';
-                return 'card-status-ok';
-            case 'water_level':
-                if (val < 20) return 'card-status-danger';
-                if (val < 40) return 'card-status-warning';
-                return 'card-status-ok';
-            case 'cpu_temp':
-                if (val > 70) return 'card-status-danger';
-                if (val > 60) return 'card-status-warning';
-                return 'card-status-ok';
-            default:
-                return '';
+    function toggleCardExpand(id) {
+        const card = document.getElementById(`card-${id}`);
+        if (!card) return;
+        const isExpanded = card.classList.contains('expanded');
+        document.querySelectorAll('.sensor-card').forEach(c => c.classList.remove('expanded'));
+        if (!isExpanded) {
+            card.classList.add('expanded');
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
 
-    function updateCardColors(data) {
-        for (const [key, value] of Object.entries(data)) {
-            const card = document.getElementById(`card-${key}`);
-            if (card) {
-                card.classList.remove('card-status-ok', 'card-status-warning', 'card-status-danger');
-                const statusClass = getStatusClass(key, value);
-                if (statusClass) card.classList.add(statusClass);
+    function updateStatus(key, value) {
+        let val = parseFloat(value);
+        let status = 'NORMAL';
+        let statusClass = 'status-normal';
+        let cardClass = '';
+        if (isNaN(val)) return;
+        const range = IDEALS[key];
+        if (range) {
+            const buffer = (range.max - range.min) * 0.1;
+            if (val < range.min || val > range.max) {
+                status = 'CRITICAL';
+                statusClass = 'status-critical';
+                cardClass = 'card-status-danger';
+            } else if (val < range.min + buffer || val > range.max - buffer) {
+                status = 'WARNING';
+                statusClass = 'status-warning';
+                cardClass = 'card-status-warning';
             }
         }
+        const badge = document.getElementById(`status-${key}`);
+        const card = document.getElementById(`card-${key}`);
+        if (badge) {
+            badge.textContent = status;
+            badge.className = `status-badge ${statusClass}`;
+        }
+        if (card) {
+            card.classList.remove('card-status-warning', 'card-status-danger');
+            if (cardClass) card.classList.add(cardClass);
+        }
+        return status !== 'NORMAL';
+    }
+
+    function updateTrend(key, value) {
+        const prev = previousValues[key];
+        const arrow = document.getElementById(`trend-arrow-${key}`);
+        const progressBar = document.getElementById(`trend-bar-${key}`);
+        if (prev !== undefined && arrow) {
+            if (value > prev) arrow.textContent = '↑';
+            else if (value < prev) arrow.textContent = '↓';
+            else arrow.textContent = '→';
+        }
+        const range = IDEALS[key];
+        if (range && progressBar) {
+            let percentage = ((value - range.min) / (range.max - range.min)) * 100;
+            percentage = Math.max(5, Math.min(95, percentage));
+            progressBar.style.width = `${percentage}%`;
+        }
+        previousValues[key] = value;
     }
 
     async function fetchSensorData() {
         try {
-            // Trying standard endpoint. If this fails, I'll need to debug. 
-            // Assuming '/api/data' or similar based on typical convention. 
-            // But wait, the previous code called it `fetchSensorData` which implies it might be defined in `main.js`. 
-            // I will assume `main.js` handles the fetch and returns data, OR I explicitly fetch here.
-            // Let's rely on `main.js` IF it exposes the data logic. 
-            // But to be safe and independent:
-            const response = await fetch('/api/sensors/latest'); // Guessing endpoint
-            if (!response.ok) throw new Error('API fetch failed');
+            const response = await fetch('/api/sensor-data');
             const data = await response.json();
-
+            activeAlerts = 0;
             for (const [key, value] of Object.entries(data)) {
                 const valElem = document.getElementById(`val-${key}`);
-                const indElem = document.getElementById(`ind-${key}`);
-
-                if (valElem) valElem.textContent = value;
-                // Simple indicator logic (green if data present)
-                if (indElem) {
-                    indElem.classList.remove('indicator-red', 'indicator-green');
-                    indElem.classList.add('indicator-green');
+                const cardElem = document.getElementById(`card-${key}`);
+                if (valElem) {
+                    valElem.textContent = typeof value === 'number' ? value.toFixed(1) : value;
                 }
+                if (cardElem) {
+                    const timeElem = cardElem.querySelector('.time-stamp');
+                    if (timeElem) timeElem.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+                if (updateStatus(key, value)) activeAlerts++;
+                updateTrend(key, value);
             }
-
-            // Update Colors
-            updateCardColors(data);
-
+            const alertStrip = document.getElementById('global-alert-strip');
+            const alertText = document.getElementById('alert-text');
+            if (activeAlerts > 0) {
+                alertStrip.style.display = 'flex';
+                alertText.textContent = `${activeAlerts} Parameter${activeAlerts > 1 ? 's' : ''} Out of Ideal Range`;
+            } else {
+                alertStrip.style.display = 'none';
+            }
         } catch (e) {
-            console.error("Fetch error", e);
+            console.error("Dashboard update failed", e);
         }
     }
 
-    // Start Polling
+    function scrollToProblem() {
+        const firstBadCard = document.querySelector('.card-status-danger, .card-status-warning');
+        if (firstBadCard) {
+            firstBadCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstBadCard.click();
+        }
+    }
+
     fetchSensorData();
-    setInterval(fetchSensorData, 2000); 
+    setInterval(fetchSensorData, 3000);
 </script>
 {% endblock %}

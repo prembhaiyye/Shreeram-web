@@ -90,8 +90,8 @@
 
         <!-- Override for critical low -->
         {% if tank.level_percent < 20 %} {% set safe_color_class='fill-danger' %} {% set
-            border_class='border: 1px solid var(--danger-color);' %} {% else %} {% set safe_color_class=color_class %}
-            {% set border_class='' %} {% endif %} <div class="nutrient-card" style="{{ border_class }}"
+            border_style='border: 1px solid var(--danger-color);' %} {% else %} {% set safe_color_class=color_class %}
+            {% set border_style='' %} {% endif %} <div class="nutrient-card" style="{{ border_style }}"
             onclick="openTankModal('{{ tank.name }}', {{ tank.level_percent }}, 'Nutrient')">
 
             <div
@@ -107,8 +107,8 @@
 
             <div
                 style="font-size: 0.75rem; margin-top: 0.25rem; font-weight: 600; color: {{ '#e53e3e' if tank.level_percent < 20 else '#718096' }};">
-                {{ "Empty!" if tank.level_percent < 20 else ("Refill Soon" if tank.level_percent < 40 else "Sufficient"
-                    ) }} </div>
+                {% if tank.level_percent < 20 %} Empty! {% elif tank.level_percent < 40 %} Refill Soon {% else %}
+                    Sufficient {% endif %} </div>
 
                     <div style="position: absolute; top: 1rem; right: 1rem; font-size: 0.8rem;">{{ icon }}</div>
             </div>
@@ -169,7 +169,6 @@
             </div>
         </div>
     </div>
-
     {% endblock %}
 
     {% block scripts %}
@@ -177,7 +176,6 @@
         // Global Modal Functions
         function openTankModal(name, level, type) {
             const modal = document.getElementById('tankModal');
-            // Clean name
             const cleanName = name.replace(/_/g, ' ').replace('pump', '');
 
             document.getElementById('modalTitle').innerText = cleanName;
@@ -185,11 +183,9 @@
             document.getElementById('modalLevel').innerText = level + '%';
             document.getElementById('modalBar').style.width = level + '%';
 
-            // Mock calculations
-            const daysLeft = Math.max(0, Math.round(level / 5)); // Roughly 5% per day
+            const daysLeft = Math.max(0, Math.round(level / 5));
             document.getElementById('modalDays').innerText = daysLeft + ' Days';
 
-            // Dynamic color for bar
             const bar = document.getElementById('modalBar');
             if (level < 20) bar.style.background = 'var(--danger-color)';
             else if (level < 40) bar.style.background = 'var(--warning-color)';
@@ -199,18 +195,15 @@
         }
 
         function closeModal(e) {
-            if (e && e.target !== e.currentTarget) return; // Only if clicking overlay or button
+            if (e && e.target !== e.currentTarget) return;
             document.getElementById('tankModal').style.display = 'none';
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Simple script to tally tank statuses
             let ok = 0, low = 0, empty = 0;
-
-            // Loop over data passed from backend (rendered as JS array)
             const levels = [
                 {% for tank in tanks %}
-                {{ tank.level_percent }},
+            {{ tank.level_percent }},
             {% endfor %}
         ];
 
@@ -226,4 +219,3 @@
     });
     </script>
     {% endblock %}
-    ```

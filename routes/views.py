@@ -62,10 +62,15 @@ def profile():
     return render_template('profile.html', user=current_user, plant=plant)
 
 @views.route('/developer')
+@views.route('/developer/<int:plant_id>')
 @login_required
-def developer():
-    plant = Plant.query.first()
-    return render_template('developer.html', user=current_user, plant=plant)
+def developer(plant_id=None):
+    plants = Plant.query.all()
+    if plant_id:
+        active_plant = Plant.query.get_or_404(plant_id)
+    else:
+        active_plant = Plant.query.first()
+    return render_template('developer.html', user=current_user, plants=plants, plant=active_plant)
 
 @views.route('/tanks')
 @login_required
@@ -73,3 +78,9 @@ def tanks():
     plant = Plant.query.first()
     tanks = TankLevel.query.all()
     return render_template('tanks.html', user=current_user, tanks=tanks, plant=plant)
+
+@views.route('/ai-scan')
+@login_required
+def ai_scan():
+    plant = Plant.query.first()
+    return render_template('ai_scan.html', user=current_user, plant=plant)

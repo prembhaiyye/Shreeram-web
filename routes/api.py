@@ -64,3 +64,58 @@ def controls():
     # GET - return all states
     controls = ControlStatus.query.all()
     return jsonify({c.name: c.is_on for c in controls})
+
+@api.route('/api/upload-image', methods=['POST'])
+@login_required
+def upload_image():
+    if 'image' not in request.files:
+        return jsonify({'success': False, 'error': 'No image uploaded'}), 400
+    
+    file = request.files['image']
+    # In a real app, save the file to a temporary location
+    # For now, we'll just acknowledge receipt
+    return jsonify({'success': True, 'message': 'Image uploaded successfully'})
+
+@api.route('/api/capture-system-camera', methods=['GET'])
+@login_required
+def capture_system_camera():
+    # Simulate a Raspberry Pi camera capture
+    # In reality, you'd use picamera or libcamera here
+    # Return a status and perhaps a mock image URL or base64
+    return jsonify({
+        'success': True, 
+        'image_url': '/static/images/mock_pi_capture.jpg',
+        'timestamp': datetime.datetime.now().isoformat()
+    })
+
+@api.route('/api/analyze-image', methods=['POST'])
+@login_required
+def analyze_image():
+    # Simulate an AI analysis call
+    # In a real app, you'd send the image to an online API (e.g., Plant.id)
+    
+    # Random issues for simulation
+    issues = [
+        {"health": "Healthy", "issue": "None", "confidence": 0.98, "cause": "Optimal conditions", "recommendation": "Maintain current nutrient levels"},
+        {"health": "Unhealthy", "issue": "Nitrogen Deficiency", "confidence": 0.87, "cause": "Low nitrogen availability", "recommendation": "Increase nitrogen concentration"},
+        {"health": "Unhealthy", "issue": "Powdery Mildew", "confidence": 0.76, "cause": "High humidity & poor airflow", "recommendation": "Improve ventilation and reduce humidity"},
+        {"health": "Unhealthy", "issue": "pH Imbalance", "confidence": 0.92, "cause": "pH outside optimal range of 5.5-6.5", "recommendation": "Calibrate sensors and adjust pH using reagents"}
+    ]
+    
+    result = random.choice(issues)
+    
+    # Sensor Validation Badge Logic (Simplified)
+    latest_sensors = SensorData.query.order_by(SensorData.timestamp.desc()).first()
+    sensor_validated = False
+    
+    if latest_sensors:
+        if result['issue'] == "Nitrogen Deficiency" and latest_sensors.n_val < 120:
+            sensor_validated = True
+        elif result['issue'] == "pH Imbalance" and (latest_sensors.ph < 5.5 or latest_sensors.ph > 6.5):
+            sensor_validated = True
+        elif result['health'] == "Healthy" and (5.8 <= latest_sensors.ph <= 6.2):
+            sensor_validated = True
+
+    result['sensor_validated'] = sensor_validated
+    
+    return jsonify(result)
