@@ -1,44 +1,95 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 style="margin-bottom: 1.5rem;">Profile</h1>
+<div class="profile-section">
+    <h1 style="margin-bottom: 1.5rem;">Profile</h1>
 
-<div class="card" style="margin-bottom: 2rem;">
-    <div style="display: flex; align-items: center; gap: 1rem;">
-        <div
-            style="width: 50px; height: 50px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-            👤
-        </div>
-        <div>
-            <div style="font-weight: 600;">{{ user.name }}</div>
-            <div style="color: var(--text-secondary); font-size: 0.9rem;">{{ user.email }}</div>
+    <!-- User Info Card -->
+    <div class="profile-card">
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+            <div class="profile-icon"
+                style="margin-right: 0; margin-bottom: 1rem; width: 80px; height: 80px; font-size: 2.5rem;">
+                👤
+            </div>
+            <div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">{{
+                    user.name }}</div>
+                <div style="color: var(--text-secondary); margin-bottom: 1rem;">{{ user.email }}</div>
+
+                <div
+                    style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid #f1f5f9; padding-top: 1rem; width: 100%;">
+                    <span><strong>System ID:</strong> LC-2024-001</span>
+                    <span><strong>Device:</strong> Raspberry Pi 4B+</span>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="card-grid" style="grid-template-columns: 1fr;">
-    <a href="{{ url_for('views.developer') }}" class="card" style="flex-direction: row; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <span style="font-size: 1.5rem;">🧑‍💻</span>
-            <span class="card-title" style="color: var(--text-primary); font-size: 1rem;">Developer Panel</span>
+    <h2
+        style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 1rem; margin-top: 2rem; padding-left: 0.5rem;">
+        Actions</h2>
+
+    <!-- Developer Panel -->
+    <a href="{{ url_for('views.developer') }}" class="profile-action-card">
+        <div class="profile-icon">🧑‍💻</div>
+        <div class="profile-text-group">
+            <span class="profile-title">Developer Panel</span>
+            <span class="profile-subtext">Add / edit plant profiles & ideal values</span>
         </div>
         <span style="color: var(--text-secondary);">→</span>
     </a>
 
-    <a href="{{ url_for('views.tanks') }}" class="card" style="flex-direction: row; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <span style="font-size: 1.5rem;">🛢️</span>
-            <span class="card-title" style="color: var(--text-primary); font-size: 1rem;">Tank Levels</span>
+    <!-- Tank Levels -->
+    <a href="{{ url_for('views.tanks') }}" class="profile-action-card">
+        <div class="profile-icon">🛢️</div>
+        <div class="profile-text-group">
+            <span class="profile-title">Tank Levels</span>
+            <span class="profile-subtext">View N, P, K, pH+, pH−, main tank</span>
         </div>
         <span style="color: var(--text-secondary);">→</span>
     </a>
 
-    <a href="{{ url_for('auth.logout') }}" class="card"
-        style="flex-direction: row; align-items: center; border: 1px solid var(--danger-color);">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <span style="font-size: 1.5rem;">🚪</span>
-            <span class="card-title" style="color: var(--danger-color); font-size: 1rem;">Logout</span>
+    <!-- System Info (Display Card) -->
+    <!-- Using a div instead of 'a' since it displays info -->
+    <div class="profile-action-card" style="cursor: default; transform: none;">
+        <div class="profile-icon">⚙️</div>
+        <div class="profile-text-group">
+            <span class="profile-title">System Information</span>
+            <div class="profile-subtext"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+                <span><strong>CPU Temp:</strong> <span id="sys-cpu">48.0°C</span></span>
+                <span><strong>Uptime:</strong> <span id="sys-uptime">2d 4h</span></span>
+                <span><strong>IP:</strong> 192.168.1.42</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout -->
+    <a href="{{ url_for('auth.logout') }}" class="profile-action-card profile-logout">
+        <div class="profile-icon" style="background: #fff5f5;">🚪</div>
+        <div class="profile-text-group">
+            <span class="profile-title">Logout</span>
+            <span class="profile-subtext">End session and return to login</span>
         </div>
     </a>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Simple fetch for system stats if API exists, otherwise placeholders remain
+    async function updateSystemStats() {
+        try {
+            const response = await fetch('/api/sensors/latest');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.cpu_temp) document.getElementById('sys-cpu').textContent = data.cpu_temp + '°C';
+                // Uptime might be harder to fetch from sensor API, keeping static or needing dedicated endpoint
+            }
+        } catch (e) {
+            console.log("Could not fetch realtime stats");
+        }
+    }
+    updateSystemStats();
+</script>
 {% endblock %}

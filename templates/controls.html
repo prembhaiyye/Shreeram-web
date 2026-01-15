@@ -5,7 +5,32 @@
 
 <div class="card-grid">
     {% for control in controls %}
-    <div class="card" id="card-{{ control.name }}">
+    {% set theme = '' %}
+    {% set icon_off = '🔌' %}
+    {% set icon_on = '⚡' %}
+
+    {% if 'pump' in control.name %}
+    {% set icon_off = '🚰' %}
+    {% set icon_on = '🌊' %}
+    {% elif 'fan' in control.name %}
+    {% set icon_off = '🛑' %}
+    {% set icon_on = '💨' %}
+    {% elif 'light' in control.name %}
+    {% set icon_off = '🌑' %}
+    {% set icon_on = '💡' %}
+    {% elif 'motor' in control.name %}
+    {% set icon_off = '⚙️' %}
+    {% set icon_on = '🔄' %}
+    {% endif %}
+
+    <div class="card {{ 'card-on' if control.is_on else 'card-off' }}" id="card-{{ control.name }}"
+        data-icon-on="{{ icon_on }}" data-icon-off="{{ icon_off }}"
+        style="{{ 'transition: background 0.5s ease;' if control.name == 'grow_light' else '' }}">
+
+        <span class="bg-icon" id="icon-{{ control.name }}">
+            {{ icon_on if control.is_on else icon_off }}
+        </span>
+
         <div class="card-header">
             <span class="card-title" style="text-transform: capitalize;">{{ control.name.replace('_', ' ') }}</span>
             <div class="status-badge {{ 'status-online' if control.is_on else 'status-offline' }}"
@@ -24,15 +49,33 @@
 
         <!-- Special controls for Grow Light -->
         {% if control.name == 'grow_light' %}
-        <div style="margin-top: 1.5rem; border-top: 1px solid #e2e8f0; padding-top: 1rem;">
+        <div style="margin-top: 1.5rem; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 1rem;">
             <div style="margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">Intensity</div>
             <input type="range" min="0" max="100" value="50" style="width: 100%;">
 
             <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-                <button class="btn" style="font-size: 0.8rem; padding: 0.5rem;">Vegetative</button>
-                <button class="btn" style="font-size: 0.8rem; padding: 0.5rem;">Flowering</button>
+                <!-- Vegetative: Blue Spectrum -->
+                <button class="btn" onclick="setLightColor('vegetative')"
+                    style="font-size: 0.8rem; padding: 0.5rem; background: rgba(255,255,255,0.7); flex: 1;">Vegetative</button>
+                <!-- Flowering: Red Spectrum -->
+                <button class="btn" onclick="setLightColor('flowering')"
+                    style="font-size: 0.8rem; padding: 0.5rem; background: rgba(255,255,255,0.7); flex: 1;">Flowering</button>
             </div>
         </div>
+        <script>
+            function setLightColor(mode) {
+                const card = document.getElementById('card-grow_light');
+                if (mode === 'vegetative') {
+                    // Blue-ish gradient
+                    card.style.background = 'linear-gradient(135deg, #e3f2fd 0%, #90caf9 100%)';
+                    card.style.borderLeft = '5px solid #1e88e5';
+                } else if (mode === 'flowering') {
+                    // Red-ish gradient
+                    card.style.background = 'linear-gradient(135deg, #ffebee 0%, #ef9a9a 100%)';
+                    card.style.borderLeft = '5px solid #e53935';
+                }
+            }
+        </script>
         {% endif %}
     </div>
     {% endfor %}
@@ -45,16 +88,32 @@
         // Optimistic UI update
         const badge = document.getElementById(`badge-${name}`);
         const card = document.getElementById(`card-${name}`);
+        const iconSpan = document.getElementById(`icon-${name}`);
 
         if (state) {
             badge.textContent = 'ON';
             badge.classList.remove('status-offline');
             badge.classList.add('status-online');
-            // card.style.borderColor = 'var(--success-color)'; // Optional visual cue
+
+            if (card) {
+                card.classList.remove('card-off');
+                card.classList.add('card-on'); // Green state
+                // Switch Icon
+                const onIcon = card.getAttribute('data-icon-on');
+                if (onIcon && iconSpan) iconSpan.textContent = onIcon;
+            }
         } else {
             badge.textContent = 'OFF';
             badge.classList.remove('status-online');
             badge.classList.add('status-offline');
+
+            if (card) {
+                card.classList.remove('card-on');
+                card.classList.add('card-off'); // Grey state
+                // Switch Icon
+                const offIcon = card.getAttribute('data-icon-off');
+                if (offIcon && iconSpan) iconSpan.textContent = offIcon;
+            }
         }
 
         try {

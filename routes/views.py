@@ -20,7 +20,32 @@ def monitor():
 @login_required
 def graph(sensor_type):
     plant = Plant.query.first()
-    return render_template('graph.html', user=current_user, sensor_type=sensor_type, plant=plant)
+    
+    # Define mapping between sensor types and relevant controls
+    control_map = {
+        'temperature': ['environmental_fans', 'cpu_fans'],
+        'humidity': ['environmental_fans'],
+        'ph': ['ph_up_pump', 'ph_down_pump', 'circulation_pump', 'stirring_motor'],
+        'tds': ['n_pump', 'p_pump', 'k_pump', 'circulation_pump', 'stirring_motor'],
+        'n': ['n_pump', 'stirring_motor'],
+        'p': ['p_pump', 'stirring_motor'],
+        'k': ['k_pump', 'stirring_motor'],
+        'light': ['grow_light'],
+        'oxygen': ['oxygen_motor'],
+        'cpu_temp': ['cpu_fans'],
+        'water_level': ['main_tank'] # Assuming main tank refill logic relates to water level
+    }
+
+    # Get valid control names for this sensor, default to empty if not found
+    valid_controls = control_map.get(sensor_type, [])
+    
+    # Fetch only the relevant controls
+    if valid_controls:
+        controls = ControlStatus.query.filter(ControlStatus.name.in_(valid_controls)).all()
+    else:
+        controls = []
+
+    return render_template('graph.html', user=current_user, sensor_type=sensor_type, plant=plant, controls=controls)
 
 @views.route('/controls')
 @login_required

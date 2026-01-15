@@ -9,20 +9,27 @@
 
 <div class="card-grid">
     {% for tank in tanks %}
-    <div class="card">
+    <div class="card tank-card">
         <div class="card-header">
-            <span class="card-title" style="text-transform: capitalize;">{{ tank.name.replace('_', ' ') }}</span>
+            <span class="card-title" style="text-transform: capitalize; font-size: 1.1rem;">{{ tank.name.replace('_', '
+                ') }}</span>
+            <span
+                class="status-badge {{ 'status-offline bg-danger text-white' if tank.level_percent < 20 else 'status-online bg-primary text-white' }}">
+                {{ "Low" if tank.level_percent < 20 else "Normal" }} </span>
         </div>
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <div style="flex-grow: 1; background: #e2e8f0; height: 20px; border-radius: 10px; overflow: hidden;">
-                <div
-                    style="width: {{ tank.level_percent }}%; height: 100%; background: {{ 'var(--danger-color)' if tank.level_percent < 20 else 'var(--primary-color)' }};">
+
+        <div class="tank-visual-container">
+            <div class="tank-body">
+                <div class="water-level {{ 'bg-danger-gradient' if tank.level_percent < 20 else 'bg-primary-gradient' }}"
+                    style="height: {{ tank.level_percent }}%;">
+                    <div class="wave"></div>
                 </div>
+                <div class="percentage-display">{{ tank.level_percent | int }}%</div>
             </div>
-            <span style="font-weight: bold; width: 40px;">{{ tank.level_percent | int }}%</span>
         </div>
-        {% if tank.level_percent < 20 %} <div
-            style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--danger-color);">Wait, refill needed!
+
+        {% if tank.level_percent < 20 %} <div class="alert-box">
+            ⚠️ Refill Required
     </div>
     {% endif %}
 </div>
