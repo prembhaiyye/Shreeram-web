@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Dashboard</h1>
+
+<div class="card-grid">
+    <!-- Temperature -->
+    <a href="{{ url_for('views.graph', sensor_type='temperature') }}" class="card" id="card-temperature">
+        <div class="card-header">
+            <span class="card-title">Temperature</span>
+            <span class="indicator indicator-green" id="ind-temperature"></span>
+        </div>
+        <div>
+            <span class="card-value" id="val-temperature">--</span>
+            <span class="card-unit">°C</span>
+        </div>
+    </a>
+
+    <!-- Humidity -->
+    <a href="{{ url_for('views.graph', sensor_type='humidity') }}" class="card" id="card-humidity">
+        <div class="card-header">
+            <span class="card-title">Humidity</span>
+            <span class="indicator indicator-green" id="ind-humidity"></span>
+        </div>
+        <div>
+            <span class="card-value" id="val-humidity">--</span>
+            <span class="card-unit">%</span>
+        </div>
+    </a>
+
+    <!-- pH -->
+    <a href="{{ url_for('views.graph', sensor_type='ph') }}" class="card" id="card-ph">
+        <div class="card-header">
+            <span class="card-title">pH</span>
+            <span class="indicator indicator-green" id="ind-ph"></span>
+        </div>
+        <div>
+            <span class="card-value" id="val-ph">--</span>
+            <span class="card-unit">pH</span>
+        </div>
+    </a>
+
+    <!-- TDS -->
+    <a href="{{ url_for('views.graph', sensor_type='tds') }}" class="card" id="card-tds">
+        <div class="card-header">
+            <span class="card-title">TDS</span>
+            <span class="indicator indicator-green" id="ind-tds"></span>
+        </div>
+        <div>
+            <span class="card-value" id="val-tds">--</span>
+            <span class="card-unit">ppm</span>
+        </div>
+    </a>
+
+    <!-- Nitrogen -->
+    <a href="{{ url_for('views.graph', sensor_type='n') }}" class="card" id="card-n">
+        <div class="card-header">
+            <span class="card-title">Nitrogen (N)</span>
+            <span class="indicator indicator-green" id="ind-n"></span>
+        </div>
+        <div>
+            <span class="card-value" id="val-n">--</span>
+            <span class="card-unit">mg/kg</span>
+        </div>
+    </a>
+
+    <!-- Phosphorus -->
+    <a href="{{ url_for('views.graph', sensor_type='p') }}" class="card" id="card-p">
+        <div class="card-header">
+            <span class="card-title">Phosphorus (P)</span>
+            <span class="indicator indicator-green" id="ind-p"></span>
+        </div>
+        <div>
+            <span class="card-value" id="val-p">--</span>
+            <span class="card-unit">mg/kg</span>
+        </div>
+    </a>
+
+    <!-- Potassium -->
+    <a href="{{ url_for('views.graph', sensor_type='k') }}" class="card" id="card-k">
+        <div class="card-header">
+            <span class="card-title">Potassium (K)</span>
+            <span class="indicator indicator-green" id="ind-k"></span>
+        </div>
+        <div>
+            <span class="card-value" id="val-k">--</span>
+            <span class="card-unit">mg/kg</span>
+        </div>
+    </a>
+
+    <!-- Light -->
+    <a href="{{ url_for('views.graph', sensor_type='light') }}" class="card" id="card-light">
+        <div class="card-header">
+            <span class="card-title">Light Intensity</span>
+            <span class="indicator indicator-green" id="ind-light"></span>
+        </div>
+        <div>
+            <span class="card-value" id="val-light">--</span>
+            <span class="card-unit">lux</span>
+        </div>
+    </a>
+
+    <!-- Water Level -->
+    <a href="{{ url_for('views.graph', sensor_type='water_level') }}" class="card" id="card-water_level">
+        <div class="card-header">
+            <span class="card-title">Water Level</span>
+            <span class="indicator indicator-green" id="ind-water_level"></span>
+        </div>
+        <div>
+            <span class="card-value" id="val-water_level">--</span>
+            <span class="card-unit">%</span>
+        </div>
+    </a>
+
+    <!-- CPU Temp -->
+    <a href="{{ url_for('views.graph', sensor_type='cpu_temp') }}" class="card" id="card-cpu_temp">
+        <div class="card-header">
+            <span class="card-title">CPU Temp</span>
+            <span class="indicator indicator-green" id="ind-cpu_temp"></span>
+        </div>
+        <div>
+            <span class="card-value" id="val-cpu_temp">--</span>
+            <span class="card-unit">°C</span>
+        </div>
+    </a>
+
+    <!-- Gas Status -->
+    <a href="{{ url_for('views.graph', sensor_type='gas') }}" class="card" id="card-gas">
+        <div class="card-header">
+            <span class="card-title">Gas Status</span>
+            <span class="indicator indicator-green" id="ind-gas"></span>
+        </div>
+        <div>
+            <span class="card-value" id="val-gas">OK</span>
+            <span class="card-unit"></span>
+        </div>
+    </a>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Start Polling
+    fetchSensorData();
+    setInterval(fetchSensorData, 2000); // Update every 2 seconds
+</script>
+{% endblock %}
