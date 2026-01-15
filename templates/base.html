@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydroponics Monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    {% if current_user.is_authenticated %}
+    <header class="app-header">
+        <div class="header-info">
+            <div style="font-weight: bold; color: var(--text-primary);">
+                {% if plant %}{{ plant.name }}{% else %}No Plant{% endif %}
+            </div>
+            <div>Day {{ 5 }} / {{ plant.expected_days if plant else 60 }}</div>
+        </div>
+        <div class="header-info">
+            <div class="status-badge status-online">Online</div>
+            <div>🔋 100%</div>
+        </div>
+    </header>
+    {% endif %}
+
+    <main class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div style="background: #fed7d7; color: #822727; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if current_user.is_authenticated %}
+    <nav class="bottom-nav">
+        <a href="{{ url_for('views.monitor') }}" class="nav-item {% if request.endpoint == 'views.monitor' %}active{% endif %}">
+            <span>📊</span>
+            <span>Monitor</span>
+        </a>
+        <a href="{{ url_for('views.controls') }}" class="nav-item {% if request.endpoint == 'views.controls' %}active{% endif %}">
+            <span>🎛️</span>
+            <span>Control</span>
+        </a>
+        <a href="{{ url_for('views.tanks') }}" class="nav-item {% if request.endpoint == 'views.tanks' %}active{% endif %}">
+            <span>🛢️</span>
+            <span>Tanks</span>
+        </a>
+        <a href="{{ url_for('views.profile') }}" class="nav-item {% if request.endpoint == 'views.profile' %}active{% endif %}">
+            <span>👤</span>
+            <span>Profile</span>
+        </a>
+    </nav>
+    <div style="height: 60px;"></div> <!-- Spacer for fixed nav -->
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
