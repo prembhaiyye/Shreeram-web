@@ -199,29 +199,32 @@
     </main>
 
     {% if current_user.is_authenticated %}
-    <nav class="bottom-nav">
-        <a href="{{ url_for('views.monitor') }}"
-            class="nav-item {% if request.endpoint == 'views.monitor' %}active{% endif %}">
-            <span>📊</span>
-            <span>Monitor</span>
-        </a>
-        <a href="{{ url_for('views.controls') }}"
-            class="nav-item {% if request.endpoint == 'views.controls' %}active{% endif %}">
-            <span>🎛️</span>
-            <span>Control</span>
-        </a>
-        <a href="{{ url_for('views.tanks') }}"
-            class="nav-item {% if request.endpoint == 'views.tanks' %}active{% endif %}">
-            <span>🛢️</span>
-            <span>Tanks</span>
-        </a>
-        <a href="{{ url_for('views.profile') }}"
-            class="nav-item {% if request.endpoint == 'views.profile' %}active{% endif %}">
-            <span>👤</span>
-            <span>Profile</span>
-        </a>
+    <!-- Floating Glass Navigation (Option-1) -->
+    <nav class="floating-nav-wrapper">
+        <div class="glass-nav-container">
+            <a href="{{ url_for('views.monitor') }}"
+                class="nav-pill {% if request.endpoint == 'views.monitor' or request.endpoint == 'views.home' %}active{% endif %}">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Monitor</span>
+            </a>
+            <a href="{{ url_for('views.controls') }}"
+                class="nav-pill {% if request.endpoint == 'views.controls' %}active{% endif %}">
+                <span class="nav-icon">🎛</span>
+                <span class="nav-label">Control</span>
+            </a>
+            <a href="{{ url_for('views.tanks') }}"
+                class="nav-pill {% if request.endpoint == 'views.tanks' %}active{% endif %}">
+                <span class="nav-icon">🛢</span>
+                <span class="nav-label">Tanks</span>
+            </a>
+            <a href="{{ url_for('views.profile') }}"
+                class="nav-pill {% if request.endpoint == 'views.profile' or request.endpoint == 'views.developer' %}active{% endif %}">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Profile</span>
+            </a>
+        </div>
     </nav>
-    <div style="height: 60px;"></div> <!-- Spacer for fixed nav -->
+    <div style="height: 100px;"></div> <!-- Spacer for floating nav -->
     {% endif %}
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

@@ -238,3 +238,47 @@ function updateDashboard(data) {
         }
     }
 }
+
+// --- Logic Restored: Theme & Notifications ---
+
+// Advanced Theme Logic
+window.toggleTheme = function (isChecked) {
+    const body = document.body;
+    const newTheme = isChecked ? 'dark' : 'light';
+    body.setAttribute('data-theme', newTheme);
+    localStorage.setItem('hydro_theme', newTheme);
+};
+
+// Initialize Theme & Checkbox
+(function () {
+    const savedTheme = localStorage.getItem('hydro_theme');
+    const isDark = savedTheme === 'dark';
+
+    if (isDark) {
+        document.body.setAttribute('data-theme', 'dark');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkbox = document.getElementById('theme_toggle');
+        if (checkbox) {
+            checkbox.checked = isDark;
+        }
+    });
+})();
+
+// Notification Toggle Logic
+window.toggleNotificationPanel = function (event) {
+    event.stopPropagation();
+    const panel = document.getElementById('notification-panel');
+    if (panel) {
+        panel.classList.toggle('active');
+    }
+};
+
+document.addEventListener('click', (e) => {
+    const panel = document.getElementById('notification-panel');
+    const bell = document.getElementById('notification-bell');
+    if (panel && !panel.contains(e.target) && (!bell || !bell.contains(e.target))) {
+        panel.classList.remove('active');
+    }
+});
