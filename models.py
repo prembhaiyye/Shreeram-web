@@ -1,70 +1,127 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin
 from datetime import datetime
 
-db = SQLAlchemy()
+class User:
+    def __init__(self, email, password_hash, name, id=None):
+        self.id = id
+        self.email = email
+        self.password_hash = password_hash
+        self.name = name
 
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(200), nullable=False)
-    name = db.Column(db.String(100))
+    def to_dict(self):
+        return {
+            'email': self.email,
+            'password_hash': self.password_hash,
+            'name': self.name
+        }
+    
+    # Flask-Login Mixin compat
+    @property
+    def is_active(self): return True
+    @property
+    def is_authenticated(self): return True
+    @property
+    def is_anonymous(self): return False
+    def get_id(self): return str(self.id)
 
-class Plant(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    # Environmental ranges
-    temp_min = db.Column(db.Float, default=20.0)
-    temp_max = db.Column(db.Float, default=30.0)
-    humidity_min = db.Column(db.Float, default=40.0)
-    humidity_max = db.Column(db.Float, default=70.0)
-    # Nutrient ranges
-    ph_min = db.Column(db.Float, default=5.5)
-    ph_max = db.Column(db.Float, default=6.5)
-    tds_min = db.Column(db.Float, default=800.0)
-    tds_max = db.Column(db.Float, default=1200.0)
-    # Industrial & Safety Fields
-    category = db.Column(db.String(50), default="Leafy") # Leafy / Fruiting / Herb
-    auto_ph_correction = db.Column(db.Boolean, default=True)
-    spectrum_pref = db.Column(db.String(50), default="Full") # Blue / Red / Full
-    safety_max_temp = db.Column(db.Float, default=40.0)
-    safety_min_water = db.Column(db.Float, default=15.0)
-    # Nutrient ranges
-    n_min = db.Column(db.Float, default=100.0)
-    n_max = db.Column(db.Float, default=200.0)
-    p_min = db.Column(db.Float, default=30.0)
-    p_max = db.Column(db.Float, default=50.0)
-    k_min = db.Column(db.Float, default=100.0)
-    k_max = db.Column(db.Float, default=300.0)
-    light_min = db.Column(db.Float, default=1000.0)
-    light_max = db.Column(db.Float, default=20000.0)
-    expected_days = db.Column(db.Integer, default=60)
-    # Current progress
-    start_date = db.Column(db.DateTime, default=datetime.utcnow)
+class Plant:
+    def __init__(self, name, category="Leafy", control_pref=None, env_ranges=None, nutrient_ranges=None, id=None):
+        self.id = id
+        self.name = name
+        self.category = category
+        
+        # Ranges & Preferences - Flattened or Nested (Nested is better for NoSQL)
+        self.env_ranges = env_ranges or {
+            'temp_min': 20.0, 'temp_max': 30.0,
+            'humidity_min': 40.0, 'humidity_max': 70.0
+        }
+        self.nutrient_ranges = nutrient_ranges or {
+            'ph_min': 5.5, 'ph_max': 6.5,
+            'tds_min': 800.0, 'tds_max': 1200.0,
+            'n_min': 100.0, 'n_max': 200.0,
+            'p_min': 30.0, 'p_max': 50.0,
+            'k_min': 100.0, 'k_max': 300.0
+        }
+        self.control_pref = control_pref or {
+            'auto_ph_correction': True,
+            'spectrum_pref': 'Full',
+            'safety_max_temp': 40.0,
+            'safety_min_water': 15.0
+        }
+        self.start_date = datetime.utcnow()
+        self.expected_days = 60
 
-class SensorData(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    temperature = db.Column(db.Float)
-    humidity = db.Column(db.Float)
-    ph = db.Column(db.Float)
-    tds = db.Column(db.Float)
-    n_val = db.Column(db.Float)
-    p_val = db.Column(db.Float)
-    k_val = db.Column(db.Float)
-    water_temp = db.Column(db.Float)
-    water_level = db.Column(db.Float)
-    light_intensity = db.Column(db.Float)
-    cpu_temp = db.Column(db.Float)
-    gas_status = db.Column(db.Float) # 0 for OK, 1 for Gas Detected
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'category': self.category,
+            'env_ranges': self.env_ranges,
+            'nutrient_ranges': self.nutrient_ranges,
+            'control_pref': self.control_pref,
+            'start_date': self.start_date,
+            'expected_days': self.expected_days
+        }
 
-class ControlStatus(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False) # e.g., 'n_pump', 'grow_light'
-    is_on = db.Column(db.Boolean, default=False)
-    settings = db.Column(db.JSON, nullable=True) # Store intensity, spectrum for lights
+class SensorData:
+    def __init__(self, data_dict):
+        self.timestamp = datetime.utcnow()
+        self.data = data_dict # Includes temp, ph, etc.
 
-class TankLevel(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False) # e.g., 'n_tank'
-    level_percent = db.Column(db.Float, default=100.0)
+    def to_dict(self):
+        return {
+            'timestamp': self.timestamp,
+            **self.data
+        }
+
+class ControlStatus:
+    def __init__(self, name, id=None, is_on=False, settings=None, mode='manual', locked=False, locked_reason=None, last_active=None):
+        self.id = id or name # Use name as ID for controls usually
+        self.name = name
+        self.is_on = is_on
+        self.settings = settings or {}
+        
+        # Advanced Features
+        self.mode = mode
+        self.locked = locked
+        self.locked_reason = locked_reason
+        self.last_active = last_active
+
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'is_on': self.is_on,
+            'settings': self.settings,
+            'mode': self.mode,
+            'locked': self.locked,
+            'locked_reason': self.locked_reason,
+            'last_active': self.last_active
+        }
+
+class ControlLog:
+    def __init__(self, control_name, action, trigger='manual', details=None):
+        self.timestamp = datetime.utcnow()
+        self.control_name = control_name
+        self.action = action
+        self.trigger = trigger
+        self.details = details
+
+    def to_dict(self):
+        return {
+            'timestamp': self.timestamp,
+            'control_name': self.control_name,
+            'action': self.action,
+            'trigger': self.trigger,
+            'details': self.details
+        }
+
+class TankLevel:
+    def __init__(self, name, level_percent=100.0):
+        self.name = name
+        self.level_percent = level_percent
+
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'level_percent': self.level_percent
+        }
+
+
